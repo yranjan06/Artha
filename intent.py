@@ -4,7 +4,8 @@ from llm import call_llm_simple
 FINANCE_PATTERN = re.compile(
     r"(balance|transaction|bill|sav|spend|incom|expens|"
     r"goal|remind|invest|salary|afford|log\s+\d|"
-    r"kharch|pais|bacha|emi|budget|mutual|fund)",
+    r"kharch|pais|bacha|emi|budget|mutual|fund|"
+    r"mera naam|my name|main .+ hoon|i am .+ and)",
     re.IGNORECASE,
 )
 
