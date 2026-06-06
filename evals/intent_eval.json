@@ -1,0 +1,17 @@
+[
+  {"input": "mera balance check karo",               "expected": "finance"},
+  {"input": "kitna kharch hua is mahine",             "expected": "finance"},
+  {"input": "500 rupees chai mein gaye",              "expected": "finance"},
+  {"input": "salary 80000 hai meri",                  "expected": "finance"},
+  {"input": "mutual fund mein invest karna chahiye",  "expected": "finance"},
+  {"input": "can I afford a new phone worth 30000",   "expected": "finance"},
+  {"input": "make a savings plan for me",             "expected": "finance"},
+  {"input": "hello",                                  "expected": "general"},
+  {"input": "hi",                                     "expected": "general"},
+  {"input": "namaste",                                "expected": "general"},
+  {"input": "good morning",                           "expected": "general"},
+  {"input": "hey there",                              "expected": "general"},
+  {"input": "what is the capital of india",           "expected": "general"},
+  {"input": "tell me a joke",                         "expected": "general"},
+  {"input": "who won the cricket match yesterday",    "expected": "general"}
+]
