@@ -193,110 +193,159 @@
       opacity: .7
     }
 
-    /* Orb */
-    .orb-wrap {
+    /* Face wrap */
+    .face-wrap {
       position: relative;
-      width: 220px;
+      width: 320px;
       height: 220px;
-      margin-bottom: 40px
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 40px;
     }
 
-    .orb-bg {
+    /* sound waves — left and right of face */
+    .wave-side {
       position: absolute;
-      inset: -20px;
-      border-radius: 50%;
-      background: radial-gradient(circle, rgba(181, 232, 83, .06) 0%, transparent 70%);
-      animation: orb-breathe 4s ease-in-out infinite;
+      top: 50%;
+      transform: translateY(-50%);
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      opacity: 0;
+      transition: opacity .3s ease;
     }
 
-    .orb {
+    .wave-side.left { left: 0; align-items: flex-end; }
+    .wave-side.right { right: 0; align-items: flex-start; }
+
+    .wave-bar {
+      height: 4px;
+      border-radius: 2px;
+      background: #b5e853;
+      transform-origin: center;
+    }
+    .wave-side.left .wave-bar { border-radius: 0 2px 2px 0; }
+    .wave-side.right .wave-bar { border-radius: 2px 0 0 2px; }
+
+    /* animated wave bars */
+    @keyframes wave1 { 0%, 100% { width: 8px } 50% { width: 22px } }
+    @keyframes wave2 { 0%, 100% { width: 14px } 50% { width: 32px } }
+    @keyframes wave3 { 0%, 100% { width: 18px } 50% { width: 40px } }
+    @keyframes wave4 { 0%, 100% { width: 10px } 50% { width: 28px } }
+    @keyframes wave5 { 0%, 100% { width: 6px } 50% { width: 16px } }
+
+    .wave-side.active { opacity: 1; }
+    .w1 { animation: wave1 .8s ease-in-out infinite; animation-delay: 0s; }
+    .w2 { animation: wave2 .8s ease-in-out infinite; animation-delay: .1s; }
+    .w3 { animation: wave3 .8s ease-in-out infinite; animation-delay: .2s; }
+    .w4 { animation: wave4 .8s ease-in-out infinite; animation-delay: .15s; }
+    .w5 { animation: wave5 .8s ease-in-out infinite; animation-delay: .05s; }
+
+    /* face */
+    .face {
+      width: 240px;
+      height: 180px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0;
+      position: relative;
+    }
+
+    .eyes-row {
+      display: flex;
+      gap: 24px;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+
+    .eye {
+      position: relative;
+      width: 96px;
+      height: 96px;
+      border-radius: 50%;
+      background: #efefef;
+      overflow: hidden;
+      flex-shrink: 0;
+      transition: width .2s ease, height .2s ease;
+    }
+
+    .iris {
+      position: absolute;
+      width: 62px;
+      height: 62px;
+      border-radius: 50%;
+      background: #111;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      transition: transform .1s ease-out;
+      will-change: transform;
+    }
+    .iris::before {
+      content: '';
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      background: #fff;
+      border-radius: 50%;
+      top: 8px;
+      left: 8px;
+    }
+    .iris::after {
+      content: '';
+      position: absolute;
+      width: 6px;
+      height: 6px;
+      background: #b5e853;
+      border-radius: 50%;
+      bottom: 10px;
+      right: 10px;
+      opacity: .9;
+    }
+
+    .lid {
+      position: absolute;
       width: 100%;
-      height: 100%;
-      border-radius: 50%;
-      background: radial-gradient(circle at 40% 35%, var(--lime) 0%, var(--lime2) 40%, var(--lime3) 80%, #3a5a10 100%);
-      box-shadow: 0 0 60px rgba(181, 232, 83, .15), 0 0 120px rgba(181, 232, 83, .05), inset 0 -20px 40px rgba(0, 0, 0, .3);
-      transition: transform .3s, box-shadow .3s;
+      background: #0a0c08;
+      border-radius: 0 0 50% 50%;
+      top: 0;
+      left: 0;
+      height: 0;
+      transition: height .12s ease;
+      z-index: 10;
     }
 
-    .orb-wrap.listening .orb {
-      box-shadow: 0 0 80px rgba(181, 232, 83, .3), 0 0 160px rgba(181, 232, 83, .1), inset 0 -20px 40px rgba(0, 0, 0, .3);
+    /* smile */
+    .smile-wrap {
+      width: 80px;
+      height: 36px;
+      opacity: 0;
+      transform: scaleY(0.4);
+      transform-origin: top center;
+      transition: opacity .35s ease, transform .35s ease;
+    }
+    .smile-wrap.visible {
+      opacity: 1;
+      transform: scaleY(1);
     }
 
-    .orb-wrap.speaking .orb {
-      animation: orb-speak .6s ease-in-out infinite alternate;
+    /* KEYFRAMES */
+    @keyframes breathe {
+      0%, 100% { transform: translateY(0) scale(1); }
+      50% { transform: translateY(-4px) scale(1.02); }
     }
-
-    .orb-wrap.thinking .orb {
-      animation: orb-think 1.2s ease-in-out infinite;
+    @keyframes spk-bounce {
+      from { transform: translate(-50%, calc(-50% + 0px)); }
+      to { transform: translate(-50%, calc(-50% - 6px)); }
     }
-
-    .orb-ring {
-      position: absolute;
-      inset: -4px;
-      border-radius: 50%;
-      border: 2px solid transparent;
-      transition: border-color .3s
-    }
-
-    .orb-wrap.listening .orb-ring {
-      border-color: rgba(181, 232, 83, .3);
-      animation: orb-ring-pulse 1.5s ease-in-out infinite
-    }
-
-    .orb-wrap.speaking .orb-ring {
-      border-color: rgba(181, 232, 83, .2)
-    }
-
-    @keyframes orb-breathe {
-
-      0%,
-      100% {
-        transform: scale(1);
-        opacity: 1
-      }
-
-      50% {
-        transform: scale(1.08);
-        opacity: .7
-      }
-    }
-
-    @keyframes orb-speak {
-      0% {
-        transform: scale(1)
-      }
-
-      100% {
-        transform: scale(1.06)
-      }
-    }
-
-    @keyframes orb-think {
-
-      0%,
-      100% {
-        transform: scale(1);
-        opacity: .7
-      }
-
-      50% {
-        transform: scale(.97);
-        opacity: 1
-      }
-    }
-
-    @keyframes orb-ring-pulse {
-
-      0%,
-      100% {
-        transform: scale(1);
-        opacity: 1
-      }
-
-      50% {
-        transform: scale(1.08);
-        opacity: .5
-      }
+    @keyframes pop {
+      0% { transform: scale(1); }
+      40% { transform: scale(1.3); }
+      70% { transform: scale(0.92); }
+      100% { transform: scale(1); }
     }
 
     /* Volume bars */
@@ -416,6 +465,20 @@
       font-weight: 500;
       color: var(--lime);
       letter-spacing: -.01em
+    }
+
+    .dash-toggle-btn {
+      display: none;
+      background: none;
+      border: none;
+      color: var(--text2);
+      cursor: pointer;
+      padding: 4px;
+      margin-left: -4px;
+    }
+    .dash-toggle-btn svg {
+      width: 20px;
+      height: 20px;
     }
 
     .chat-end-btn {
@@ -715,8 +778,40 @@
 
     /* Responsive */
     @media(max-width:700px) {
+      .dash-toggle-btn {
+        display: block;
+      }
+
       .dash-panel {
-        display: none !important
+        position: fixed;
+        top: 0;
+        right: -320px;
+        width: 280px;
+        height: 100vh;
+        background: var(--bg2);
+        z-index: 100;
+        transition: right 0.3s ease;
+        box-shadow: -5px 0 25px rgba(0,0,0,0.5);
+        display: block !important;
+      }
+
+      .dash-panel.open {
+        right: 0;
+      }
+
+      .dash-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.5);
+        z-index: 99;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s ease;
+      }
+
+      .dash-overlay.open {
+        opacity: 1;
+        pointer-events: auto;
       }
 
       .msg {
@@ -783,10 +878,26 @@
       <div class="call-status" id="call-status">connecting...</div>
     </div>
 
-    <div class="orb-wrap" id="orb-wrap">
-      <div class="orb-bg"></div>
-      <div class="orb-ring"></div>
-      <div class="orb"></div>
+    <div class="face-wrap">
+      <div class="wave-side left" id="wave-l">
+        <div class="wave-bar w5"></div><div class="wave-bar w3"></div><div class="wave-bar w1"></div>
+        <div class="wave-bar w2"></div><div class="wave-bar w4"></div><div class="wave-bar w5"></div>
+      </div>
+      <div class="face" id="face">
+        <div class="eyes-row" id="eyes-row">
+          <div class="eye" id="eye-l"><div class="iris" id="iris-l"></div><div class="lid" id="lid-l"></div></div>
+          <div class="eye" id="eye-r"><div class="iris" id="iris-r"></div><div class="lid" id="lid-r"></div></div>
+        </div>
+        <div class="smile-wrap" id="smile">
+          <svg viewBox="0 0 80 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M8 8 Q40 34 72 8" stroke="#efefef" stroke-width="5" stroke-linecap="round" fill="none" />
+          </svg>
+        </div>
+      </div>
+      <div class="wave-side right" id="wave-r">
+        <div class="wave-bar w5"></div><div class="wave-bar w3"></div><div class="wave-bar w1"></div>
+        <div class="wave-bar w2"></div><div class="wave-bar w4"></div><div class="wave-bar w5"></div>
+      </div>
     </div>
 
     <div class="vol-bars" id="vol-bars"></div>
@@ -804,11 +915,17 @@
   <!-- ===== TEXT CHAT ===== -->
   <div id="chat" class="screen">
     <div class="chat-header">
-      <div class="chat-title">artha</div>
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <button class="dash-toggle-btn" onclick="toggleDashboard()">
+          <svg viewBox="0 0 24 24"><path d="M3 12h18M3 6h18M3 18h18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        </button>
+        <div class="chat-title">artha</div>
+      </div>
       <button class="chat-end-btn" onclick="endSession()">end session</button>
     </div>
     <div class="chat-body">
       <div class="chat-messages" id="chat-messages"></div>
+      <div class="dash-overlay" id="dash-overlay" onclick="toggleDashboard()"></div>
       <div class="dash-panel" id="dash-panel">
         <div class="dash-section">
           <div class="dash-label">savings rate</div>
@@ -903,6 +1020,13 @@
       document.getElementById(id).classList.add('active');
     }
 
+    function toggleDashboard() {
+      const panel = document.getElementById('dash-panel');
+      const overlay = document.getElementById('dash-overlay');
+      if (panel) panel.classList.toggle('open');
+      if (overlay) overlay.classList.toggle('open');
+    }
+
     function toast(msg) {
       const t = document.getElementById('toast');
       t.textContent = msg;
@@ -977,6 +1101,7 @@
           const rms = Math.sqrt(sum / data.length);
 
           updateVolBars(rms);
+          if (typeof updateRMS === 'function') updateRMS(rms);
 
           // During TTS: collect RMS samples to build a dynamic baseline of TTS bleed-through.
           // Once we have enough samples, threshold = max(mean * 2.5, floor).
@@ -1089,9 +1214,105 @@
       }
     }
 
-    function setOrbState(state) {
-      const wrap = document.getElementById('orb-wrap');
-      wrap.className = 'orb-wrap ' + state;
+    const face = document.getElementById('face');
+    const eyeL = document.getElementById('eye-l');
+    const eyeR = document.getElementById('eye-r');
+    const irisL = document.getElementById('iris-l');
+    const irisR = document.getElementById('iris-r');
+    const lidL = document.getElementById('lid-l');
+    const lidR = document.getElementById('lid-r');
+    const smile = document.getElementById('smile');
+    const waveL = document.getElementById('wave-l');
+    const waveR = document.getElementById('wave-r');
+    const eyesRow = document.getElementById('eyes-row');
+
+    let faceState = 'idle';
+    let blinkTimer = null;
+
+    function resetFace() {
+      if (!face) return;
+      face.style.animation = '';
+      eyeL.style.animation = eyeR.style.animation = '';
+      irisL.style.animation = irisR.style.animation = '';
+      eyeL.style.width = eyeR.style.width = '96px';
+      eyeL.style.height = eyeR.style.height = '96px';
+      lidL.style.height = lidR.style.height = '0';
+      irisL.style.transform = irisR.style.transform = 'translate(-50%,-50%)';
+      smile.classList.remove('visible');
+      waveL.classList.remove('active');
+      waveR.classList.remove('active');
+      eyesRow.style.marginBottom = '14px';
+      clearTimeout(blinkTimer);
+    }
+
+    function blinkFace(cb) {
+      lidL.style.height = lidR.style.height = '52%';
+      setTimeout(() => {
+        lidL.style.height = lidR.style.height = '0';
+        if (cb) cb();
+      }, 130);
+    }
+
+    function scheduleBlink() {
+      blinkTimer = setTimeout(() => {
+        if (faceState === 'idle' || faceState === 'listening' || faceState === 'speaking') {
+          blinkFace(() => scheduleBlink());
+        }
+      }, 2200 + Math.random() * 2800);
+    }
+
+    function movePupils(dx, dy) {
+      const t = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`;
+      irisL.style.transform = t;
+      irisR.style.transform = t;
+    }
+
+    window.updateRMS = function (rms) {
+      if (faceState !== 'listening') return;
+      const val = Math.min(rms * 15, 1);
+      movePupils(0, val * 8 - 4);
+    }
+
+    function setOrbState(s) {
+      faceState = s;
+      resetFace();
+      if (!face) return;
+
+      if (s === 'idle') {
+        face.style.animation = 'breathe 4s ease-in-out infinite';
+        scheduleBlink();
+      }
+
+      if (s === 'listening') {
+        eyeL.style.width = eyeR.style.width = '106px';
+        eyeL.style.height = eyeR.style.height = '106px';
+        waveL.classList.add('active');
+        waveR.classList.add('active');
+        scheduleBlink();
+      }
+
+      if (s === 'thinking') {
+        movePupils(-10, -12);
+        lidR.style.height = '40%';
+        face.style.animation = 'breathe 2s ease-in-out infinite';
+      }
+
+      if (s === 'speaking') {
+        irisL.style.animation = 'spk-bounce .38s ease-in-out infinite alternate';
+        irisR.style.animation = 'spk-bounce .38s ease-in-out infinite alternate';
+        eyeL.style.height = eyeR.style.height = '88px';
+        eyesRow.style.marginBottom = '10px';
+        smile.classList.add('visible');
+        scheduleBlink();
+      }
+
+      if (s === 'barge-in') {
+        eyeL.style.animation = 'pop .45s ease forwards';
+        eyeR.style.animation = 'pop .45s ease forwards';
+        waveL.classList.add('active');
+        waveR.classList.add('active');
+        setTimeout(() => { if (faceState === 'barge-in') setOrbState('listening'); }, 480);
+      }
     }
 
     function arrayBufferToBase64(buffer) {
