@@ -3,59 +3,174 @@
 
 <head>
   <meta charset="UTF-8">
-  <title>Artha Face</title>
+  <title>Artha Face — Preview</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
   <style>
-    * {
+    *,
+    *::before,
+    *::after {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
     }
 
+    :root {
+      --bg: #BEE554;
+      --bg3: #A6CE3A;
+      --bg4: #97BF2A;
+      --lime: #2c5a08;
+      --lime2: #9bc428;
+      --lime-dim: rgba(44, 90, 8, .1);
+      --text: #1a3604;
+      --text2: #2c5a08;
+      --text3: #3f7d0e;
+      --red: #d32f2f;
+      --amber: #e65100;
+      --mono: 'DM Mono', monospace;
+      --ease-spring: cubic-bezier(.34, 1.56, .64, 1);
+      --ease-out: cubic-bezier(.22, 1, .36, 1);
+    }
+
+    html,
     body {
-      background: #0a0c08;
-      height: 100vh;
+      height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--mono);
+      overflow: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 9999;
+      opacity: .15;
+    }
+
+    .state-label {
+      position: fixed;
+      top: 28px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 10px;
+      color: var(--text3);
+      letter-spacing: .14em;
+      text-transform: uppercase;
+    }
+
+    .state-label span {
+      color: var(--lime);
+      font-weight: 400;
+    }
+
+    /* ─── FULL FACE AREA ─── */
+    .face-container {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -55%);
       display: flex;
-      flex-direction: column;
       align-items: center;
       justify-content: center;
-      overflow: hidden;
-      font-family: monospace;
     }
 
-    .keys {
-      position: fixed;
-      bottom: 20px;
-      font-size: 11px;
-      color: #333;
-      letter-spacing: .08em;
+    /* Orbit ring */
+    .face-orbit {
+      position: absolute;
+      width: 280px;
+      height: 280px;
+      inset: 0;
+      margin: auto;
+      border-radius: 50%;
+      border: 1px solid transparent;
+      transition: border-color .6s var(--ease-out), box-shadow .6s var(--ease-out);
+      pointer-events: none;
     }
 
-    .keys b {
-      color: #555;
+    .face-orbit.listening {
+      border-color: rgba(44, 90, 8, .2);
+      box-shadow: 0 0 0 8px rgba(44, 90, 8, .04), 0 0 40px rgba(44, 90, 8, .08);
+      animation: orbit-spin 6s linear infinite;
     }
 
-    .state-lbl {
-      position: fixed;
-      top: 20px;
-      font-size: 11px;
-      color: #333;
-      letter-spacing: .1em;
+    .face-orbit.speaking {
+      border-color: rgba(44, 90, 8, .15);
+      box-shadow: 0 0 0 4px rgba(44, 90, 8, .06), 0 0 30px rgba(44, 90, 8, .1);
+      animation: orbit-pulse 1.2s ease-in-out infinite;
     }
 
-    .state-lbl span {
-      color: #b5e853;
+    @keyframes orbit-spin {
+      to {
+        transform: rotate(360deg);
+      }
     }
 
+    @keyframes orbit-pulse {
+
+      0%,
+      100% {
+        opacity: .6
+      }
+
+      50% {
+        opacity: 1
+      }
+    }
+
+    /* Sound ripples */
+    .ripple-ring {
+      position: absolute;
+      width: 200px;
+      height: 200px;
+      inset: 0;
+      margin: auto;
+      border-radius: 50%;
+      border: 1px solid var(--lime);
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .ripple-ring.r1 {
+      animation: ripple 2.4s ease-out infinite;
+    }
+
+    .ripple-ring.r2 {
+      animation: ripple 2.4s ease-out .8s infinite;
+    }
+
+    .ripple-ring.r3 {
+      animation: ripple 2.4s ease-out 1.6s infinite;
+    }
+
+    @keyframes ripple {
+      0% {
+        transform: scale(.85);
+        opacity: .4;
+      }
+
+      100% {
+        transform: scale(1.7);
+        opacity: 0;
+      }
+    }
+
+    /* Face wrap */
     .face-wrap {
       position: relative;
-      width: 320px;
-      height: 220px;
+      width: 200px;
+      height: 200px;
       display: flex;
       align-items: center;
       justify-content: center;
+      z-index: 1;
     }
 
-    /* sound waves — left and right of face */
     .wave-side {
       position: absolute;
       top: 50%;
@@ -64,24 +179,27 @@
       flex-direction: column;
       gap: 5px;
       opacity: 0;
-      transition: opacity .3s ease;
+      transition: opacity .4s var(--ease-out);
     }
 
     .wave-side.left {
-      left: 0;
+      left: -50px;
       align-items: flex-end;
     }
 
     .wave-side.right {
-      right: 0;
+      right: -50px;
       align-items: flex-start;
     }
 
+    .wave-side.active {
+      opacity: 1;
+    }
+
     .wave-bar {
-      height: 4px;
+      height: 3px;
       border-radius: 2px;
-      background: #b5e853;
-      transform-origin: center;
+      background: var(--lime);
     }
 
     .wave-side.left .wave-bar {
@@ -92,44 +210,19 @@
       border-radius: 2px 0 0 2px;
     }
 
-    /* animated wave bars */
-    @keyframes wave1 {
+    @keyframes wb1 {
 
       0%,
       100% {
-        width: 8px
+        width: 6px
       }
 
       50% {
-        width: 22px
+        width: 20px
       }
     }
 
-    @keyframes wave2 {
-
-      0%,
-      100% {
-        width: 14px
-      }
-
-      50% {
-        width: 32px
-      }
-    }
-
-    @keyframes wave3 {
-
-      0%,
-      100% {
-        width: 18px
-      }
-
-      50% {
-        width: 40px
-      }
-    }
-
-    @keyframes wave4 {
+    @keyframes wb2 {
 
       0%,
       100% {
@@ -141,141 +234,160 @@
       }
     }
 
-    @keyframes wave5 {
+    @keyframes wb3 {
 
       0%,
       100% {
-        width: 6px
+        width: 14px
       }
 
       50% {
-        width: 16px
+        width: 36px
       }
     }
 
-    .wave-side.active {
-      opacity: 1;
+    @keyframes wb4 {
+
+      0%,
+      100% {
+        width: 8px
+      }
+
+      50% {
+        width: 24px
+      }
+    }
+
+    @keyframes wb5 {
+
+      0%,
+      100% {
+        width: 5px
+      }
+
+      50% {
+        width: 14px
+      }
     }
 
     .w1 {
-      animation: wave1 .8s ease-in-out infinite;
-      animation-delay: 0s;
+      animation: wb1 .9s ease-in-out infinite 0s;
     }
 
     .w2 {
-      animation: wave2 .8s ease-in-out infinite;
-      animation-delay: .1s;
+      animation: wb2 .9s ease-in-out infinite .12s;
     }
 
     .w3 {
-      animation: wave3 .8s ease-in-out infinite;
-      animation-delay: .2s;
+      animation: wb3 .9s ease-in-out infinite .24s;
     }
 
     .w4 {
-      animation: wave4 .8s ease-in-out infinite;
-      animation-delay: .15s;
+      animation: wb4 .9s ease-in-out infinite .16s;
     }
 
     .w5 {
-      animation: wave5 .8s ease-in-out infinite;
-      animation-delay: .05s;
+      animation: wb5 .9s ease-in-out infinite .06s;
     }
 
-    /* face */
     .face {
-      width: 240px;
-      height: 180px;
+      width: 180px;
+      height: 160px;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 0;
       position: relative;
+      will-change: transform;
     }
 
     .eyes-row {
       display: flex;
-      gap: 24px;
+      gap: 20px;
       align-items: center;
       margin-bottom: 14px;
+      transition: margin-bottom .3s var(--ease-out);
     }
 
     .eye {
       position: relative;
-      width: 96px;
-      height: 96px;
+      width: 88px;
+      height: 88px;
       border-radius: 50%;
-      background: #efefef;
+      background: #2c5a08;
       overflow: hidden;
       flex-shrink: 0;
-      transition: width .2s ease, height .2s ease;
+      transition: width .25s var(--ease-spring), height .25s var(--ease-spring),
+        border-radius .25s var(--ease-spring), box-shadow .4s;
+    }
+
+    .eye.speaking {
+      box-shadow: 0 0 20px rgba(44, 90, 8, .25);
     }
 
     .iris {
       position: absolute;
-      width: 62px;
-      height: 62px;
+      width: 56px;
+      height: 56px;
       border-radius: 50%;
       background: #111;
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      transition: transform .1s ease-out;
+      transition: transform .12s var(--ease-out);
       will-change: transform;
     }
 
     .iris::before {
       content: '';
       position: absolute;
-      width: 20px;
-      height: 20px;
+      width: 18px;
+      height: 18px;
       background: #fff;
       border-radius: 50%;
-      top: 8px;
-      left: 8px;
+      top: 7px;
+      left: 7px;
     }
 
     .iris::after {
       content: '';
       position: absolute;
-      width: 6px;
-      height: 6px;
-      background: #b5e853;
+      width: 7px;
+      height: 7px;
+      background: var(--lime);
       border-radius: 50%;
-      bottom: 10px;
-      right: 10px;
-      opacity: .9;
+      bottom: 9px;
+      right: 9px;
+      opacity: .95;
+      box-shadow: 0 0 4px var(--lime);
     }
 
     .lid {
       position: absolute;
       width: 100%;
-      background: #0a0c08;
+      background: var(--bg);
       border-radius: 0 0 50% 50%;
       top: 0;
       left: 0;
       height: 0;
-      transition: height .12s ease;
+      transition: height .13s var(--ease-out);
       z-index: 10;
     }
 
-    /* smile — svg arc */
     .smile-wrap {
-      width: 80px;
-      height: 36px;
+      width: 72px;
+      height: 32px;
       opacity: 0;
-      transform: scaleY(0.4);
+      transform: scaleY(0.3) scaleX(.8);
       transform-origin: top center;
-      transition: opacity .35s ease, transform .35s ease;
+      transition: opacity .4s var(--ease-spring), transform .4s var(--ease-spring);
     }
 
     .smile-wrap.visible {
       opacity: 1;
-      transform: scaleY(1);
+      transform: scaleY(1) scaleX(1);
     }
 
-    /* KEYFRAMES */
     @keyframes breathe {
 
       0%,
@@ -284,7 +396,23 @@
       }
 
       50% {
-        transform: translateY(-4px) scale(1.02);
+        transform: translateY(-5px) scale(1.015);
+      }
+    }
+
+    @keyframes think-sway {
+
+      0%,
+      100% {
+        transform: translateX(0);
+      }
+
+      33% {
+        transform: translateX(-3px);
+      }
+
+      66% {
+        transform: translateX(3px);
       }
     }
 
@@ -294,80 +422,155 @@
       }
 
       to {
-        transform: translate(-50%, calc(-50% - 6px));
+        transform: translate(-50%, calc(-50% - 7px));
       }
     }
 
-    @keyframes pop {
+    @keyframes eye-pop {
       0% {
         transform: scale(1);
       }
 
-      40% {
-        transform: scale(1.3);
+      35% {
+        transform: scale(1.28);
       }
 
-      70% {
-        transform: scale(0.92);
+      65% {
+        transform: scale(.93);
       }
 
       100% {
         transform: scale(1);
       }
     }
+
+    /* ─── KEY GUIDE ─── */
+    .key-guide {
+      position: fixed;
+      bottom: 32px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      justify-content: center;
+      max-width: 440px;
+    }
+
+    .key-item {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      background: var(--bg3);
+      border: 1px solid var(--bg4);
+      border-radius: 8px;
+      padding: 7px 12px;
+      cursor: pointer;
+      transition: border-color .2s, background .2s, transform .15s var(--ease-spring);
+      user-select: none;
+    }
+
+    .key-item:hover {
+      border-color: var(--lime2);
+      background: var(--lime-dim);
+      transform: translateY(-1px);
+    }
+
+    .key-item:active {
+      transform: scale(.95);
+    }
+
+    .key-item.active {
+      border-color: var(--lime);
+      background: var(--lime-dim);
+    }
+
+    .key-badge {
+      font-size: 11px;
+      font-weight: 400;
+      color: var(--lime);
+      background: rgba(44, 90, 8, .1);
+      border-radius: 4px;
+      padding: 2px 6px;
+      min-width: 20px;
+      text-align: center;
+    }
+
+    .key-name {
+      font-size: 11px;
+      color: var(--text3);
+      letter-spacing: .06em;
+      text-transform: uppercase;
+    }
   </style>
 </head>
 
 <body>
 
-  <div class="state-lbl">state: <span id="lbl">idle</span></div>
+  <div class="state-label">state: <span id="lbl">idle</span></div>
 
-  <div class="face-wrap">
+  <div class="face-container">
+    <div class="face-orbit" id="face-orbit"></div>
+    <div class="ripple-ring r1" id="rr1"></div>
+    <div class="ripple-ring r2" id="rr2"></div>
+    <div class="ripple-ring r3" id="rr3"></div>
 
-    <!-- left wave -->
-    <div class="wave-side left" id="wave-l">
-      <div class="wave-bar w5"></div>
-      <div class="wave-bar w3"></div>
-      <div class="wave-bar w1"></div>
-      <div class="wave-bar w2"></div>
-      <div class="wave-bar w4"></div>
-      <div class="wave-bar w5"></div>
-    </div>
+    <div class="face-wrap">
+      <div class="wave-side left" id="wave-l">
+        <div class="wave-bar w5"></div>
+        <div class="wave-bar w3"></div>
+        <div class="wave-bar w1"></div>
+        <div class="wave-bar w2"></div>
+        <div class="wave-bar w4"></div>
+        <div class="wave-bar w5"></div>
+      </div>
 
-    <div class="face" id="face">
-      <div class="eyes-row" id="eyes-row">
-        <div class="eye" id="eye-l">
-          <div class="iris" id="iris-l"></div>
-          <div class="lid" id="lid-l"></div>
+      <div class="face" id="face">
+        <div class="eyes-row" id="eyes-row">
+          <div class="eye" id="eye-l">
+            <div class="iris" id="iris-l"></div>
+            <div class="lid" id="lid-l"></div>
+          </div>
+          <div class="eye" id="eye-r">
+            <div class="iris" id="iris-r"></div>
+            <div class="lid" id="lid-r"></div>
+          </div>
         </div>
-        <div class="eye" id="eye-r">
-          <div class="iris" id="iris-r"></div>
-          <div class="lid" id="lid-r"></div>
+        <div class="smile-wrap" id="smile">
+          <svg viewBox="0 0 72 32" fill="none">
+            <path d="M6 6 Q36 30 66 6" stroke="#2c5a08" stroke-width="4.5" stroke-linecap="round" fill="none" />
+          </svg>
         </div>
       </div>
 
-      <!-- smile -->
-      <div class="smile-wrap" id="smile">
-        <svg viewBox="0 0 80 36" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M8 8 Q40 34 72 8" stroke="#efefef" stroke-width="5" stroke-linecap="round" fill="none" />
-        </svg>
+      <div class="wave-side right" id="wave-r">
+        <div class="wave-bar w5"></div>
+        <div class="wave-bar w3"></div>
+        <div class="wave-bar w1"></div>
+        <div class="wave-bar w2"></div>
+        <div class="wave-bar w4"></div>
+        <div class="wave-bar w5"></div>
       </div>
     </div>
-
-    <!-- right wave -->
-    <div class="wave-side right" id="wave-r">
-      <div class="wave-bar w5"></div>
-      <div class="wave-bar w3"></div>
-      <div class="wave-bar w1"></div>
-      <div class="wave-bar w2"></div>
-      <div class="wave-bar w4"></div>
-      <div class="wave-bar w5"></div>
-    </div>
-
   </div>
 
-  <div class="keys"><b>1</b> idle &nbsp; <b>2</b> listening &nbsp; <b>3</b> thinking &nbsp; <b>4</b> speaking &nbsp;
-    <b>5</b> barge-in</div>
+  <div class="key-guide">
+    <div class="key-item" onclick="setFaceState('idle')">
+      <span class="key-badge">1</span><span class="key-name">idle</span>
+    </div>
+    <div class="key-item" onclick="setFaceState('listening')">
+      <span class="key-badge">2</span><span class="key-name">listening</span>
+    </div>
+    <div class="key-item" onclick="setFaceState('thinking')">
+      <span class="key-badge">3</span><span class="key-name">thinking</span>
+    </div>
+    <div class="key-item" onclick="setFaceState('speaking')">
+      <span class="key-badge">4</span><span class="key-name">speaking</span>
+    </div>
+    <div class="key-item" onclick="setFaceState('barge-in')">
+      <span class="key-badge">5</span><span class="key-name">barge-in</span>
+    </div>
+  </div>
 
   <script>
     const face = document.getElementById('face');
@@ -380,25 +583,38 @@
     const smile = document.getElementById('smile');
     const waveL = document.getElementById('wave-l');
     const waveR = document.getElementById('wave-r');
-    const lbl = document.getElementById('lbl');
+    const orbit = document.getElementById('face-orbit');
     const eyesRow = document.getElementById('eyes-row');
+    const lbl = document.getElementById('lbl');
+    const rr1 = document.getElementById('rr1');
+    const rr2 = document.getElementById('rr2');
+    const rr3 = document.getElementById('rr3');
 
     let state = 'idle';
     let blinkTimer = null;
 
     function resetAll() {
       face.style.animation = '';
-      eyeL.style.animation = eyeR.style.animation = '';
-      irisL.style.animation = irisR.style.animation = '';
-      eyeL.style.width = eyeR.style.width = '96px';
-      eyeL.style.height = eyeR.style.height = '96px';
+      [eyeL, eyeR].forEach(e => {
+        e.style.animation = '';
+        e.style.width = e.style.height = '88px';
+        e.classList.remove('speaking');
+      });
+      [irisL, irisR].forEach(i => { i.style.animation = ''; i.style.transform = 'translate(-50%,-50%)'; });
       lidL.style.height = lidR.style.height = '0';
-      irisL.style.transform = irisR.style.transform = 'translate(-50%,-50%)';
       smile.classList.remove('visible');
       waveL.classList.remove('active');
       waveR.classList.remove('active');
+      orbit.className = 'face-orbit';
+      [rr1, rr2, rr3].forEach(r => r.style.display = 'none');
       eyesRow.style.marginBottom = '14px';
       clearTimeout(blinkTimer);
+      // Update key buttons
+      document.querySelectorAll('.key-item').forEach(el => el.classList.remove('active'));
+      const active = document.querySelectorAll('.key-item')[
+        ['idle', 'listening', 'thinking', 'speaking', 'barge-in'].indexOf(state)
+      ];
+      if (active) active.classList.add('active');
     }
 
     function blink(cb) {
@@ -406,15 +622,15 @@
       setTimeout(() => {
         lidL.style.height = lidR.style.height = '0';
         if (cb) cb();
-      }, 130);
+      }, 140);
     }
 
     function scheduleBlink() {
       blinkTimer = setTimeout(() => {
-        if (state === 'idle' || state === 'listening' || state === 'speaking') {
+        if (['idle', 'listening', 'speaking'].includes(state)) {
           blink(() => scheduleBlink());
         }
-      }, 2200 + Math.random() * 2800);
+      }, 2400 + Math.random() * 3000);
     }
 
     function movePupils(dx, dy) {
@@ -423,62 +639,64 @@
       irisR.style.transform = t;
     }
 
-    /* public API */
     window.setFaceState = function (s) {
       state = s;
       lbl.textContent = s;
       resetAll();
 
       if (s === 'idle') {
-        face.style.animation = 'breathe 4s ease-in-out infinite';
+        face.style.animation = 'breathe 4.5s ease-in-out infinite';
         scheduleBlink();
       }
 
       if (s === 'listening') {
-        eyeL.style.width = eyeR.style.width = '106px';
-        eyeL.style.height = eyeR.style.height = '106px';
+        eyeL.style.width = eyeR.style.width = '98px';
+        eyeL.style.height = eyeR.style.height = '98px';
         waveL.classList.add('active');
         waveR.classList.add('active');
+        orbit.classList.add('listening');
+        [rr1, rr2, rr3].forEach(r => r.style.display = '');
         scheduleBlink();
       }
 
       if (s === 'thinking') {
-        movePupils(-10, -12);
-        lidR.style.height = '40%';
-        face.style.animation = 'breathe 2s ease-in-out infinite';
+        movePupils(-11, -13);
+        lidR.style.height = '38%';
+        face.style.animation = 'think-sway 3s ease-in-out infinite';
       }
 
       if (s === 'speaking') {
-        irisL.style.animation = 'spk-bounce .38s ease-in-out infinite alternate';
-        irisR.style.animation = 'spk-bounce .38s ease-in-out infinite alternate';
-        eyeL.style.height = eyeR.style.height = '88px';
+        irisL.style.animation = 'spk-bounce .42s ease-in-out infinite alternate';
+        irisR.style.animation = 'spk-bounce .42s ease-in-out infinite alternate';
+        eyeL.style.height = eyeR.style.height = '82px';
+        eyeL.classList.add('speaking');
+        eyeR.classList.add('speaking');
         eyesRow.style.marginBottom = '10px';
         smile.classList.add('visible');
+        orbit.classList.add('speaking');
         scheduleBlink();
       }
 
       if (s === 'barge-in') {
-        eyeL.style.animation = 'pop .45s ease forwards';
-        eyeR.style.animation = 'pop .45s ease forwards';
+        [eyeL, eyeR].forEach(e => { e.style.animation = 'eye-pop .48s ease forwards'; });
         waveL.classList.add('active');
         waveR.classList.add('active');
-        setTimeout(() => { if (state === 'barge-in') setFaceState('listening'); }, 480);
+        setTimeout(() => { if (state === 'barge-in') setFaceState('listening'); }, 500);
       }
-    }
+    };
 
-    window.updateRMS = function (x, y) {
-      if (state !== 'listening') return;
-      movePupils((x * 2 - 1) * 12, (y * 2 - 1) * 10);
-    }
-
-    /* mouse simulate rms */
+    // Mouse pupil tracking
     document.addEventListener('mousemove', e => {
-      updateRMS(e.clientX / window.innerWidth, e.clientY / window.innerHeight);
+      if (!['idle', 'thinking'].includes(state)) return;
+      const dx = (e.clientX / window.innerWidth - .5) * 12;
+      const dy = (e.clientY / window.innerHeight - .5) * 10;
+      movePupils(dx, dy);
     });
 
+    // Keyboard shortcuts
+    const keyMap = { '1': 'idle', '2': 'listening', '3': 'thinking', '4': 'speaking', '5': 'barge-in' };
     document.addEventListener('keydown', e => {
-      const m = { '1': 'idle', '2': 'listening', '3': 'thinking', '4': 'speaking', '5': 'barge-in' };
-      if (m[e.key]) setFaceState(m[e.key]);
+      if (keyMap[e.key]) setFaceState(keyMap[e.key]);
     });
 
     setFaceState('idle');

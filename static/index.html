@@ -3,37 +3,45 @@
 
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>Artha Voice Finance Agent</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Artha — Voice Finance Agent</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=DM+Mono:wght@300;400;500&display=swap"
+    rel="stylesheet">
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&family=JetBrains+Mono:wght@400;500&display=swap');
-
     *,
     *::before,
     *::after {
       box-sizing: border-box;
       margin: 0;
-      padding: 0
+      padding: 0;
     }
 
     :root {
-      --bg: #0a0c08;
-      --bg2: #12150e;
-      --bg3: #1a1e15;
-      --bg4: #222820;
-      --lime: #b5e853;
-      --lime2: #8fc93a;
-      --lime3: #6ba31e;
-      --lime-dim: rgba(181, 232, 83, .12);
-      --text: #e8ead0;
-      --text2: #a3a68a;
-      --text3: #6b6e56;
-      --red: #e85353;
-      --amber: #efa827;
-      --radius: 14px;
-      --radius-sm: 8px;
-      --font: 'DM Sans', system-ui, sans-serif;
-      --mono: 'JetBrains Mono', monospace;
+      --bg: #080a07;
+      --bg2: #0f1210;
+      --bg3: #171c16;
+      --bg4: #1e2620;
+      --bg5: #252e26;
+      --lime: #c4f135;
+      --lime2: #9bc428;
+      --lime3: #6e9118;
+      --lime-dim: rgba(196, 241, 53, .08);
+      --lime-glow: rgba(196, 241, 53, .15);
+      --text: #e6ead4;
+      --text2: #96a082;
+      --text3: #586048;
+      --red: #f25c5c;
+      --amber: #f0a832;
+      --radius: 16px;
+      --radius-sm: 10px;
+      --font: 'Syne', system-ui, sans-serif;
+      --mono: 'DM Mono', monospace;
+      --ease-spring: cubic-bezier(.34, 1.56, .64, 1);
+      --ease-out: cubic-bezier(.22, 1, .36, 1);
+      --ease-in-out: cubic-bezier(.65, 0, .35, 1);
     }
 
     html,
@@ -42,10 +50,22 @@
       background: var(--bg);
       color: var(--text);
       font-family: var(--font);
-      overflow: hidden
+      overflow: hidden;
+      -webkit-font-smoothing: antialiased;
     }
 
-    /* ===== SCREENS ===== */
+    /* ─── NOISE OVERLAY ─── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 9999;
+      opacity: .6;
+    }
+
+    /* ─── SCREENS ─── */
     .screen {
       position: absolute;
       inset: 0;
@@ -53,118 +73,234 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      transition: opacity .5s, transform .5s;
       opacity: 0;
       pointer-events: none;
-      transform: scale(.96)
+      transform: translateY(12px) scale(.98);
+      transition: opacity .45s var(--ease-out), transform .45s var(--ease-out);
+      will-change: opacity, transform;
     }
 
     .screen.active {
       opacity: 1;
       pointer-events: all;
-      transform: scale(1)
+      transform: none;
     }
 
-    /* ===== LANDING ===== */
+    .screen.exit {
+      opacity: 0;
+      transform: translateY(-12px) scale(.98);
+    }
+
+    /* ─── AMBIENT GRID ─── */
+    .ambient {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+      z-index: 0;
+    }
+
+    .ambient-dot {
+      position: absolute;
+      border-radius: 50%;
+      background: var(--lime);
+      opacity: 0;
+      filter: blur(80px);
+      transition: opacity 1.2s var(--ease-out);
+    }
+
+    .ambient-dot.a1 {
+      width: 340px;
+      height: 340px;
+      top: -80px;
+      right: -60px;
+    }
+
+    .ambient-dot.a2 {
+      width: 280px;
+      height: 280px;
+      bottom: -60px;
+      left: -40px;
+    }
+
+    .ambient-dot.active {
+      opacity: .04;
+    }
+
+    /* ─── LANDING ─── */
     #landing {
-      gap: 32px
+      gap: 0;
+      z-index: 1;
     }
 
-    .landing-logo {
-      font-size: 48px;
-      font-weight: 600;
-      letter-spacing: -.03em;
-      color: var(--lime)
+    .landing-wordmark {
+      font-size: 72px;
+      font-weight: 700;
+      letter-spacing: -.05em;
+      line-height: 1;
+      color: var(--lime);
+      margin-bottom: 8px;
+      position: relative;
     }
 
-    .landing-logo span {
+    .landing-wordmark::after {
+      content: '';
+      position: absolute;
+      bottom: -4px;
+      left: 0;
+      width: 100%;
+      height: 2px;
+      background: linear-gradient(90deg, var(--lime), transparent);
+      transform: scaleX(0);
+      transform-origin: left;
+      animation: underline-in 0.6s var(--ease-out) 0.4s forwards;
+    }
+
+    @keyframes underline-in {
+      to {
+        transform: scaleX(1);
+      }
+    }
+
+    .landing-tagline {
+      font-size: 13px;
+      font-weight: 400;
       color: var(--text3);
-      font-weight: 300;
-      font-size: 16px;
-      display: block;
-      letter-spacing: .08em;
-      margin-top: 4px
+      letter-spacing: .18em;
+      text-transform: uppercase;
+      font-family: var(--mono);
+      margin-bottom: 52px;
+    }
+
+    .landing-input-wrap {
+      position: relative;
+      margin-bottom: 28px;
     }
 
     .landing-input {
       background: var(--bg3);
       border: 1px solid var(--bg4);
       border-radius: var(--radius);
-      padding: 14px 20px;
+      padding: 16px 52px 16px 20px;
       font-size: 16px;
       color: var(--text);
       font-family: var(--font);
-      width: 280px;
-      text-align: center;
+      font-weight: 500;
+      width: 300px;
+      text-align: left;
       outline: none;
-      transition: border-color .2s
+      transition: border-color .2s, background .2s, box-shadow .2s;
+      letter-spacing: -.01em;
     }
 
     .landing-input:focus {
-      border-color: var(--lime3)
+      border-color: var(--lime3);
+      background: var(--bg4);
+      box-shadow: 0 0 0 4px var(--lime-dim);
     }
 
     .landing-input::placeholder {
-      color: var(--text3)
+      color: var(--text3);
+    }
+
+    .landing-input-icon {
+      position: absolute;
+      right: 18px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text3);
+      font-size: 16px;
+      pointer-events: none;
+      font-family: var(--mono);
     }
 
     .mode-btns {
       display: flex;
-      gap: 16px;
-      margin-top: 8px
+      gap: 12px;
     }
 
     .mode-btn {
       background: var(--bg3);
       border: 1px solid var(--bg4);
       border-radius: var(--radius);
-      padding: 16px 28px;
+      padding: 20px 32px;
       font-size: 15px;
-      font-weight: 500;
+      font-weight: 600;
       color: var(--text);
       font-family: var(--font);
+      letter-spacing: -.01em;
       cursor: pointer;
-      transition: all .2s;
+      transition: border-color .2s, background .2s, transform .18s var(--ease-spring), box-shadow .2s;
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 8px;
-      min-width: 130px
+      gap: 10px;
+      min-width: 130px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .mode-btn::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at center, var(--lime-glow), transparent 70%);
+      opacity: 0;
+      transition: opacity .3s;
     }
 
     .mode-btn:hover {
       border-color: var(--lime3);
-      background: var(--lime-dim)
+      background: var(--bg4);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, .4);
+    }
+
+    .mode-btn:hover::before {
+      opacity: 1;
     }
 
     .mode-btn:active {
-      transform: scale(.96)
+      transform: translateY(0) scale(.97);
     }
 
     .mode-btn svg {
-      width: 28px;
-      height: 28px;
+      width: 26px;
+      height: 26px;
       stroke: var(--lime);
       fill: none;
       stroke-width: 1.5;
       stroke-linecap: round;
-      stroke-linejoin: round
+      stroke-linejoin: round;
+      transition: transform .3s var(--ease-spring);
     }
 
-    .mode-btn.disabled {
-      opacity: .3;
-      pointer-events: none
+    .mode-btn:hover svg {
+      transform: scale(1.15);
     }
 
     .landing-err {
       color: var(--red);
-      font-size: 13px;
-      height: 18px
+      font-size: 12px;
+      font-family: var(--mono);
+      letter-spacing: .04em;
+      height: 20px;
+      margin-top: 16px;
+      text-align: center;
+      opacity: 0;
+      transform: translateY(-4px);
+      transition: opacity .2s, transform .2s;
     }
 
-    /* ===== CALL SCREEN (MIC) ===== */
+    .landing-err.show {
+      opacity: 1;
+      transform: none;
+    }
+
+    /* ─── CALL SCREEN ─── */
     #call {
-      background: var(--bg)
+      background: var(--bg);
+      z-index: 1;
     }
 
     .call-header {
@@ -172,39 +308,174 @@
       top: 0;
       left: 0;
       right: 0;
-      padding: 20px 24px;
+      padding: 24px 28px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      z-index: 10
+      z-index: 10;
     }
 
     .call-name {
-      font-size: 14px;
-      color: var(--text2);
-      letter-spacing: .04em
-    }
-
-    .call-status {
-      font-size: 12px;
+      font-size: 13px;
       font-family: var(--mono);
-      color: var(--lime);
-      letter-spacing: .06em;
-      opacity: .7
+      color: var(--text3);
+      letter-spacing: .1em;
+      text-transform: uppercase;
     }
 
-    /* Face wrap */
-    .face-wrap {
+    .call-status-pill {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      background: var(--bg3);
+      border: 1px solid var(--bg4);
+      border-radius: 100px;
+      padding: 6px 14px;
+      font-size: 11px;
+      font-family: var(--mono);
+      color: var(--text2);
+      letter-spacing: .06em;
+      transition: all .3s var(--ease-out);
+    }
+
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--text3);
+      transition: background .3s, box-shadow .3s;
+      flex-shrink: 0;
+    }
+
+    .status-dot.active {
+      background: var(--lime);
+      box-shadow: 0 0 6px var(--lime2);
+    }
+
+    .status-dot.thinking {
+      background: var(--amber);
+      box-shadow: 0 0 6px var(--amber);
+      animation: pulse-dot 1s ease-in-out infinite;
+    }
+
+    .status-dot.speaking {
+      background: var(--lime);
+      box-shadow: 0 0 10px var(--lime);
+      animation: pulse-dot .6s ease-in-out infinite;
+    }
+
+    @keyframes pulse-dot {
+
+      0%,
+      100% {
+        opacity: 1
+      }
+
+      50% {
+        opacity: .4
+      }
+    }
+
+    /* ─── FACE SYSTEM ─── */
+    .face-container {
       position: relative;
-      width: 320px;
-      height: 220px;
+      margin-bottom: 32px;
       display: flex;
       align-items: center;
       justify-content: center;
-      margin-bottom: 40px;
     }
 
-    /* sound waves — left and right of face */
+    /* Orbit ring */
+    .face-orbit {
+      position: absolute;
+      width: 260px;
+      height: 260px;
+      inset: 0;
+      margin: auto;
+      border-radius: 50%;
+      border: 1px solid transparent;
+      transition: border-color .6s var(--ease-out), box-shadow .6s var(--ease-out);
+      pointer-events: none;
+    }
+
+    .face-orbit.listening {
+      border-color: rgba(196, 241, 53, .2);
+      box-shadow: 0 0 0 8px rgba(196, 241, 53, .04), 0 0 40px rgba(196, 241, 53, .08);
+      animation: orbit-spin 6s linear infinite;
+    }
+
+    .face-orbit.speaking {
+      border-color: rgba(196, 241, 53, .15);
+      box-shadow: 0 0 0 4px rgba(196, 241, 53, .06), 0 0 30px rgba(196, 241, 53, .1);
+      animation: orbit-pulse 1.2s ease-in-out infinite;
+    }
+
+    @keyframes orbit-spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    @keyframes orbit-pulse {
+
+      0%,
+      100% {
+        opacity: .6
+      }
+
+      50% {
+        opacity: 1
+      }
+    }
+
+    /* Sound ripples (listening) */
+    .ripple-ring {
+      position: absolute;
+      width: 200px;
+      height: 200px;
+      inset: 0;
+      margin: auto;
+      border-radius: 50%;
+      border: 1px solid var(--lime);
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .ripple-ring.r1 {
+      animation: ripple 2.4s ease-out infinite;
+    }
+
+    .ripple-ring.r2 {
+      animation: ripple 2.4s ease-out .8s infinite;
+    }
+
+    .ripple-ring.r3 {
+      animation: ripple 2.4s ease-out 1.6s infinite;
+    }
+
+    @keyframes ripple {
+      0% {
+        transform: scale(.85);
+        opacity: .4;
+      }
+
+      100% {
+        transform: scale(1.7);
+        opacity: 0;
+      }
+    }
+
+    .face-wrap {
+      position: relative;
+      width: 200px;
+      height: 200px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1;
+    }
+
+    /* Wave bars flanking face */
     .wave-side {
       position: absolute;
       top: 50%;
@@ -213,272 +484,462 @@
       flex-direction: column;
       gap: 5px;
       opacity: 0;
-      transition: opacity .3s ease;
+      transition: opacity .4s var(--ease-out);
     }
 
-    .wave-side.left { left: 0; align-items: flex-end; }
-    .wave-side.right { right: 0; align-items: flex-start; }
+    .wave-side.left {
+      left: -48px;
+      align-items: flex-end;
+    }
+
+    .wave-side.right {
+      right: -48px;
+      align-items: flex-start;
+    }
+
+    .wave-side.active {
+      opacity: 1;
+    }
 
     .wave-bar {
-      height: 4px;
+      height: 3px;
       border-radius: 2px;
-      background: #b5e853;
-      transform-origin: center;
+      background: var(--lime);
     }
-    .wave-side.left .wave-bar { border-radius: 0 2px 2px 0; }
-    .wave-side.right .wave-bar { border-radius: 2px 0 0 2px; }
 
-    /* animated wave bars */
-    @keyframes wave1 { 0%, 100% { width: 8px } 50% { width: 22px } }
-    @keyframes wave2 { 0%, 100% { width: 14px } 50% { width: 32px } }
-    @keyframes wave3 { 0%, 100% { width: 18px } 50% { width: 40px } }
-    @keyframes wave4 { 0%, 100% { width: 10px } 50% { width: 28px } }
-    @keyframes wave5 { 0%, 100% { width: 6px } 50% { width: 16px } }
+    .wave-side.left .wave-bar {
+      border-radius: 0 2px 2px 0;
+    }
 
-    .wave-side.active { opacity: 1; }
-    .w1 { animation: wave1 .8s ease-in-out infinite; animation-delay: 0s; }
-    .w2 { animation: wave2 .8s ease-in-out infinite; animation-delay: .1s; }
-    .w3 { animation: wave3 .8s ease-in-out infinite; animation-delay: .2s; }
-    .w4 { animation: wave4 .8s ease-in-out infinite; animation-delay: .15s; }
-    .w5 { animation: wave5 .8s ease-in-out infinite; animation-delay: .05s; }
+    .wave-side.right .wave-bar {
+      border-radius: 2px 0 0 2px;
+    }
 
-    /* face */
+    @keyframes wb1 {
+
+      0%,
+      100% {
+        width: 6px
+      }
+
+      50% {
+        width: 20px
+      }
+    }
+
+    @keyframes wb2 {
+
+      0%,
+      100% {
+        width: 10px
+      }
+
+      50% {
+        width: 28px
+      }
+    }
+
+    @keyframes wb3 {
+
+      0%,
+      100% {
+        width: 14px
+      }
+
+      50% {
+        width: 36px
+      }
+    }
+
+    @keyframes wb4 {
+
+      0%,
+      100% {
+        width: 8px
+      }
+
+      50% {
+        width: 24px
+      }
+    }
+
+    @keyframes wb5 {
+
+      0%,
+      100% {
+        width: 5px
+      }
+
+      50% {
+        width: 14px
+      }
+    }
+
+    .w1 {
+      animation: wb1 .9s ease-in-out infinite 0s;
+    }
+
+    .w2 {
+      animation: wb2 .9s ease-in-out infinite .12s;
+    }
+
+    .w3 {
+      animation: wb3 .9s ease-in-out infinite .24s;
+    }
+
+    .w4 {
+      animation: wb4 .9s ease-in-out infinite .16s;
+    }
+
+    .w5 {
+      animation: wb5 .9s ease-in-out infinite .06s;
+    }
+
+    /* Face itself */
     .face {
-      width: 240px;
-      height: 180px;
+      width: 180px;
+      height: 160px;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       gap: 0;
       position: relative;
+      will-change: transform;
     }
 
     .eyes-row {
       display: flex;
-      gap: 24px;
+      gap: 20px;
       align-items: center;
       margin-bottom: 14px;
+      transition: margin-bottom .3s var(--ease-out);
     }
 
     .eye {
       position: relative;
-      width: 96px;
-      height: 96px;
+      width: 88px;
+      height: 88px;
       border-radius: 50%;
-      background: #efefef;
+      background: #f0f0ee;
       overflow: hidden;
       flex-shrink: 0;
-      transition: width .2s ease, height .2s ease;
+      transition: width .25s var(--ease-spring), height .25s var(--ease-spring),
+        border-radius .25s var(--ease-spring), box-shadow .4s;
+    }
+
+    .eye.speaking {
+      box-shadow: 0 0 20px rgba(196, 241, 53, .25);
     }
 
     .iris {
       position: absolute;
-      width: 62px;
-      height: 62px;
+      width: 56px;
+      height: 56px;
       border-radius: 50%;
       background: #111;
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      transition: transform .1s ease-out;
+      transition: transform .12s var(--ease-out);
       will-change: transform;
     }
+
     .iris::before {
       content: '';
       position: absolute;
-      width: 20px;
-      height: 20px;
+      width: 18px;
+      height: 18px;
       background: #fff;
       border-radius: 50%;
-      top: 8px;
-      left: 8px;
+      top: 7px;
+      left: 7px;
     }
+
     .iris::after {
       content: '';
       position: absolute;
-      width: 6px;
-      height: 6px;
-      background: #b5e853;
+      width: 7px;
+      height: 7px;
+      background: var(--lime);
       border-radius: 50%;
-      bottom: 10px;
-      right: 10px;
-      opacity: .9;
+      bottom: 9px;
+      right: 9px;
+      opacity: .95;
+      box-shadow: 0 0 4px var(--lime);
     }
 
     .lid {
       position: absolute;
       width: 100%;
-      background: #0a0c08;
+      background: var(--bg);
       border-radius: 0 0 50% 50%;
       top: 0;
       left: 0;
       height: 0;
-      transition: height .12s ease;
+      transition: height .13s var(--ease-out);
       z-index: 10;
     }
 
-    /* smile */
+    /* Smile */
     .smile-wrap {
-      width: 80px;
-      height: 36px;
+      width: 72px;
+      height: 32px;
       opacity: 0;
-      transform: scaleY(0.4);
+      transform: scaleY(0.3) scaleX(.8);
       transform-origin: top center;
-      transition: opacity .35s ease, transform .35s ease;
+      transition: opacity .4s var(--ease-spring), transform .4s var(--ease-spring);
     }
+
     .smile-wrap.visible {
       opacity: 1;
-      transform: scaleY(1);
+      transform: scaleY(1) scaleX(1);
     }
 
-    /* KEYFRAMES */
+    /* Face animations */
     @keyframes breathe {
-      0%, 100% { transform: translateY(0) scale(1); }
-      50% { transform: translateY(-4px) scale(1.02); }
-    }
-    @keyframes spk-bounce {
-      from { transform: translate(-50%, calc(-50% + 0px)); }
-      to { transform: translate(-50%, calc(-50% - 6px)); }
-    }
-    @keyframes pop {
-      0% { transform: scale(1); }
-      40% { transform: scale(1.3); }
-      70% { transform: scale(0.92); }
-      100% { transform: scale(1); }
+
+      0%,
+      100% {
+        transform: translateY(0) scale(1);
+      }
+
+      50% {
+        transform: translateY(-5px) scale(1.015);
+      }
     }
 
-    /* Volume bars */
+    @keyframes think-sway {
+
+      0%,
+      100% {
+        transform: translateX(0);
+      }
+
+      33% {
+        transform: translateX(-3px);
+      }
+
+      66% {
+        transform: translateX(3px);
+      }
+    }
+
+    @keyframes spk-bounce {
+      from {
+        transform: translate(-50%, calc(-50% + 0px));
+      }
+
+      to {
+        transform: translate(-50%, calc(-50% - 7px));
+      }
+    }
+
+    @keyframes eye-pop {
+      0% {
+        transform: scale(1);
+      }
+
+      35% {
+        transform: scale(1.28);
+      }
+
+      65% {
+        transform: scale(.93);
+      }
+
+      100% {
+        transform: scale(1);
+      }
+    }
+
+    /* ─── VOLUME VISUALIZER ─── */
     .vol-bars {
       display: flex;
       gap: 3px;
       align-items: flex-end;
-      height: 24px;
-      margin-bottom: 20px
+      height: 28px;
+      margin-bottom: 24px;
     }
 
     .vol-bar {
-      width: 4px;
+      width: 3px;
       background: var(--lime);
       border-radius: 2px;
-      transition: height .08s;
-      opacity: .5
+      transition: height .07s, opacity .07s;
+      opacity: .35;
     }
 
-    /* Call transcript */
+    /* ─── CALL TRANSCRIPT ─── */
     .call-transcript {
       width: 100%;
-      max-width: 400px;
-      padding: 0 24px;
-      max-height: 160px;
+      max-width: 380px;
+      padding: 0 28px;
+      max-height: 140px;
       overflow-y: auto;
-      mask-image: linear-gradient(transparent, #000 20%, #000 100%);
-      -webkit-mask-image: linear-gradient(transparent, #000 20%, #000 100%);
+      -webkit-mask-image: linear-gradient(transparent, #000 28%, #000 100%);
+      mask-image: linear-gradient(transparent, #000 28%, #000 100%);
+      scrollbar-width: none;
     }
 
     .call-transcript::-webkit-scrollbar {
-      display: none
+      display: none;
     }
 
     .ct-msg {
-      font-size: 14px;
-      line-height: 1.6;
-      margin-bottom: 8px;
+      font-size: 13px;
+      line-height: 1.65;
+      margin-bottom: 10px;
       opacity: 0;
-      animation: ct-in .3s forwards
+      transform: translateY(6px);
+      animation: ct-in .32s var(--ease-out) forwards;
     }
 
     .ct-msg.user {
-      color: var(--text2)
+      color: var(--text2);
     }
 
     .ct-msg.assistant {
-      color: var(--text)
+      color: var(--text);
     }
 
-    .ct-msg .ct-label {
-      font-size: 11px;
+    .ct-label {
+      font-size: 10px;
       font-family: var(--mono);
       color: var(--text3);
-      letter-spacing: .06em;
-      margin-bottom: 2px
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      margin-bottom: 2px;
     }
 
     @keyframes ct-in {
       to {
-        opacity: 1
+        opacity: 1;
+        transform: none;
       }
     }
 
+    /* ─── END CALL BUTTON ─── */
     .end-call-btn {
       position: absolute;
-      bottom: 40px;
+      bottom: 44px;
       left: 50%;
       transform: translateX(-50%);
-      background: var(--red);
-      border: none;
+      background: rgba(242, 92, 92, .15);
+      border: 1px solid rgba(242, 92, 92, .3);
       border-radius: 50%;
-      width: 64px;
-      height: 64px;
+      width: 60px;
+      height: 60px;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: transform .2s, box-shadow .2s;
-      box-shadow: 0 4px 20px rgba(232, 83, 83, .3)
+      transition: background .2s, border-color .2s, transform .2s var(--ease-spring), box-shadow .2s;
     }
 
     .end-call-btn:hover {
-      transform: translateX(-50%) scale(1.08)
+      background: rgba(242, 92, 92, .25);
+      border-color: rgba(242, 92, 92, .6);
+      transform: translateX(-50%) scale(1.1);
+      box-shadow: 0 6px 24px rgba(242, 92, 92, .25);
     }
 
     .end-call-btn:active {
-      transform: translateX(-50%) scale(.95)
+      transform: translateX(-50%) scale(.95);
     }
 
     .end-call-btn svg {
-      width: 24px;
-      height: 24px;
-      stroke: #fff;
+      width: 22px;
+      height: 22px;
+      stroke: var(--red);
       fill: none;
       stroke-width: 2;
-      stroke-linecap: round
+      stroke-linecap: round;
     }
 
-    /* ===== TEXT CHAT ===== */
-    #chat {
+    /* ─── APP LAYOUT ─── */
+    .app-row {
       display: flex;
-      flex-direction: column
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .screens-col {
+      flex: 2;
+      position: relative;
+      min-width: 0;
+    }
+
+    body[data-screen="landing"] .dash-panel {
+      display: none !important;
+    }
+
+    /* ─── TEXT CHAT ─── */
+    #chat {
+      align-items: stretch;
+      justify-content: flex-start;
+      z-index: 1;
     }
 
     .chat-header {
-      padding: 16px 24px;
+      padding: 18px 24px;
       display: flex;
       justify-content: space-between;
       align-items: center;
       border-bottom: 1px solid var(--bg3);
-      flex-shrink: 0
+      flex-shrink: 0;
+      backdrop-filter: blur(12px);
+      background: rgba(8, 10, 7, .8);
+      position: relative;
+      z-index: 10;
+    }
+
+    .chat-header-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
     }
 
     .chat-title {
-      font-size: 18px;
-      font-weight: 500;
+      font-size: 20px;
+      font-weight: 700;
       color: var(--lime);
-      letter-spacing: -.01em
+      letter-spacing: -.03em;
+    }
+
+    .chat-badge {
+      font-size: 10px;
+      font-family: var(--mono);
+      color: var(--text3);
+      border: 1px solid var(--bg4);
+      border-radius: 6px;
+      padding: 3px 8px;
+      letter-spacing: .06em;
+      text-transform: uppercase;
     }
 
     .dash-toggle-btn {
       display: none;
       background: none;
-      border: none;
+      border: 1px solid var(--bg4);
+      border-radius: var(--radius-sm);
       color: var(--text2);
       cursor: pointer;
-      padding: 4px;
-      margin-left: -4px;
+      padding: 8px;
+      transition: all .2s;
     }
+
+    .dash-toggle-btn:hover {
+      border-color: var(--text3);
+      color: var(--text);
+    }
+
     .dash-toggle-btn svg {
-      width: 20px;
-      height: 20px;
+      width: 16px;
+      height: 16px;
+      display: block;
     }
 
     .chat-end-btn {
@@ -487,326 +948,483 @@
       border-radius: var(--radius-sm);
       padding: 8px 16px;
       font-size: 12px;
+      font-family: var(--mono);
       color: var(--text2);
-      font-family: var(--font);
       cursor: pointer;
+      letter-spacing: .04em;
       transition: all .2s;
-      letter-spacing: .04em
     }
 
     .chat-end-btn:hover {
       border-color: var(--red);
-      color: var(--red)
+      color: var(--red);
     }
 
     .chat-body {
       display: flex;
       flex: 1;
-      overflow: hidden
+      overflow: hidden;
     }
 
     .chat-messages {
       flex: 1;
       overflow-y: auto;
-      padding: 20px 24px;
+      padding: 24px 24px 16px;
       display: flex;
       flex-direction: column;
-      gap: 12px
+      gap: 10px;
+      scrollbar-width: thin;
+      scrollbar-color: var(--bg4) transparent;
     }
 
     .chat-messages::-webkit-scrollbar {
-      width: 4px
+      width: 4px;
     }
 
     .chat-messages::-webkit-scrollbar-thumb {
       background: var(--bg4);
-      border-radius: 2px
+      border-radius: 2px;
     }
 
     .msg {
-      max-width: 80%;
-      padding: 12px 16px;
-      border-radius: var(--radius);
-      font-size: 14px;
+      max-width: 78%;
+      padding: 16px 20px;
+      border-radius: 24px;
+      font-size: 15px;
+      font-weight: 600;
+      font-family: 'Quicksand', 'Nunito', var(--font);
       line-height: 1.6;
       opacity: 0;
-      animation: msg-in .3s forwards
+      transform: translateY(8px);
+      animation: msg-in .3s var(--ease-out) forwards;
+      position: relative;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+      letter-spacing: .02em;
     }
 
     .msg.user {
       align-self: flex-end;
-      background: var(--lime3);
-      color: #fff;
-      border-bottom-right-radius: 4px
+      background: linear-gradient(135deg, var(--lime), #c4f135);
+      color: var(--bg);
+      border-bottom-right-radius: 6px;
+      font-weight: 800;
+      box-shadow: 0 6px 20px rgba(196, 241, 53, 0.25);
     }
 
     .msg.assistant {
       align-self: flex-start;
-      background: var(--bg3);
+      background: rgba(196, 241, 53, 0.05);
       color: var(--text);
-      border-bottom-left-radius: 4px
+      border-bottom-left-radius: 6px;
+      border: 1px solid rgba(196, 241, 53, 0.2);
+      box-shadow: inset 0 0 10px rgba(196, 241, 53, 0.02);
     }
 
     .msg.system {
       align-self: center;
       color: var(--text3);
-      font-size: 12px;
-      font-style: italic;
+      font-size: 11px;
+      font-family: var(--mono);
       background: none;
-      padding: 4px
+      padding: 4px 8px;
     }
 
     .msg.streaming {
-      opacity: 1
+      opacity: 1;
+      animation: none;
     }
 
     .msg.streaming::after {
       content: '▍';
-      animation: blink 1s steps(1) infinite;
-      color: var(--lime)
+      animation: cursor-blink 1s steps(1) infinite;
+      color: var(--lime);
+      font-size: 13px;
     }
 
     @keyframes msg-in {
       to {
-        opacity: 1
+        opacity: 1;
+        transform: none;
       }
     }
 
-    @keyframes blink {
+    @keyframes cursor-blink {
       50% {
         opacity: 0
       }
     }
 
+    /* ─── CHAT INPUT ─── */
     .chat-input-wrap {
-      padding: 16px 24px;
+      padding: 16px 24px 20px;
       border-top: 1px solid var(--bg3);
       display: flex;
-      gap: 12px;
-      flex-shrink: 0
+      gap: 10px;
+      flex-shrink: 0;
+      background: rgba(8, 10, 7, .6);
+      backdrop-filter: blur(12px);
     }
 
     .chat-input {
       flex: 1;
-      background: var(--bg3);
-      border: 1px solid var(--bg4);
-      border-radius: var(--radius);
-      padding: 12px 16px;
-      font-size: 14px;
+      background: rgba(196, 241, 53, 0.03);
+      border: 1px solid rgba(196, 241, 53, 0.2);
+      border-radius: 24px;
+      padding: 16px 24px;
+      font-size: 15px;
+      font-weight: 600;
       color: var(--text);
-      font-family: var(--font);
+      font-family: 'Quicksand', 'Nunito', var(--font);
       outline: none;
-      transition: border-color .2s
+      transition: border-color .2s, box-shadow .2s, transform .2s;
+      letter-spacing: .02em;
     }
 
     .chat-input:focus {
-      border-color: var(--lime3)
+      border-color: var(--lime);
+      box-shadow: 0 0 20px rgba(196, 241, 53, 0.15);
+      transform: translateY(-2px);
     }
 
     .chat-input::placeholder {
-      color: var(--text3)
+      color: var(--text3);
     }
 
     .chat-send {
-      background: var(--lime3);
+      background: var(--lime);
       border: none;
-      border-radius: var(--radius);
-      padding: 0 20px;
+      border-radius: 24px;
+      padding: 0 24px;
       cursor: pointer;
-      transition: all .2s;
+      transition: background .2s, transform .15s var(--ease-spring), box-shadow .2s;
       display: flex;
       align-items: center;
-      justify-content: center
+      justify-content: center;
+      min-width: 64px;
+      box-shadow: 0 4px 12px rgba(196, 241, 53, 0.2);
     }
 
     .chat-send:hover {
-      background: var(--lime2)
+      background: #c4f135;
+      transform: translateY(-2px) scale(1.05);
+      box-shadow: 0 6px 16px rgba(196, 241, 53, 0.3);
     }
 
     .chat-send:active {
-      transform: scale(.95)
-    }
-
-    .chat-send svg {
-      width: 18px;
-      height: 18px;
-      stroke: #fff;
-      fill: none;
-      stroke-width: 2;
-      stroke-linecap: round;
-      stroke-linejoin: round
+      transform: scale(.92);
     }
 
     .chat-send:disabled {
       opacity: .3;
-      cursor: not-allowed
+      cursor: not-allowed;
     }
 
-    /* Dashboard sidebar */
+    .chat-send svg {
+      width: 19px;
+      height: 19px;
+      stroke: var(--bg);
+      fill: none;
+      stroke-width: 2.5;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      transition: transform .2s var(--ease-spring);
+    }
+
+    .chat-send:hover:not(:disabled) svg {
+      transform: translateX(2px) translateY(-2px);
+    }
+
+    /* ─── DASHBOARD PANEL ─── */
     .dash-panel {
-      width: 280px;
+      flex: 1;
+      max-width: 380px;
       border-left: 1px solid var(--bg3);
-      padding: 20px;
+      padding: 32px 24px;
       overflow-y: auto;
       flex-shrink: 0;
-      display: none
+      display: block;
+      scrollbar-width: none;
+      background: var(--bg2);
+      color: var(--text);
+      animation: dash-slide-in .3s var(--ease-out);
+    }
+
+    .dash-panel::-webkit-scrollbar {
+      display: none;
     }
 
     .dash-panel.open {
-      display: block
+      display: block;
+    }
+
+    @keyframes dash-slide-in {
+      from {
+        opacity: 0;
+        transform: translateX(16px);
+      }
+
+      to {
+        opacity: 1;
+        transform: none;
+      }
     }
 
     .dash-section {
-      margin-bottom: 24px
+      background: rgba(196, 241, 53, 0.04);
+      border: 1px solid rgba(196, 241, 53, 0.15);
+      border-radius: 24px;
+      padding: 24px;
+      margin-bottom: 20px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2), inset 0 0 20px rgba(196, 241, 53, 0.02);
+      transition: transform .3s var(--ease-spring), box-shadow .3s, border-color .3s;
+    }
+
+    .dash-section:hover {
+      transform: translateY(-4px) scale(1.02);
+      box-shadow: 0 12px 30px rgba(196, 241, 53, 0.15), inset 0 0 30px rgba(196, 241, 53, 0.05);
+      border-color: rgba(196, 241, 53, 0.4);
     }
 
     .dash-label {
       font-size: 11px;
-      font-family: var(--mono);
-      color: var(--text3);
-      letter-spacing: .08em;
-      margin-bottom: 8px;
-      text-transform: uppercase
+      font-weight: 700;
+      font-family: 'Quicksand', 'Nunito', var(--font);
+      color: var(--text2);
+      letter-spacing: .15em;
+      text-transform: uppercase;
+      margin-bottom: 12px;
     }
 
     .dash-value {
-      font-size: 28px;
-      font-weight: 600;
+      font-size: 36px;
+      font-weight: 900;
+      font-family: 'Quicksand', 'Nunito', var(--font);
       color: var(--lime);
-      letter-spacing: -.02em
+      letter-spacing: -.05em;
+      line-height: 1;
+      text-shadow: 0 0 24px rgba(196, 241, 53, 0.4);
     }
 
     .dash-sub {
       font-size: 13px;
-      color: var(--text2);
-      margin-top: 2px
+      font-weight: 600;
+      color: var(--text3);
+      font-family: 'Quicksand', 'Nunito', var(--font);
+      margin-top: 6px;
     }
 
+    /* Savings ring */
+    .savings-ring {
+      width: 76px;
+      height: 76px;
+      margin: 0 auto 10px;
+    }
+
+    .savings-ring svg {
+      transform: rotate(-90deg);
+    }
+
+    .savings-ring circle {
+      fill: none;
+      stroke-width: 5;
+      stroke-linecap: round;
+    }
+
+    .savings-ring .track {
+      stroke: var(--bg3);
+    }
+
+    .savings-ring .fill {
+      stroke: var(--lime);
+      filter: drop-shadow(0 0 8px rgba(196, 241, 53, 0.6));
+      transition: stroke-dashoffset .9s var(--ease-out);
+    }
+
+    .savings-label {
+      text-align: center;
+      font-size: 14px;
+      font-weight: 800;
+      font-family: 'Quicksand', 'Nunito', var(--font);
+      color: var(--lime);
+      text-shadow: 0 0 12px rgba(196, 241, 53, 0.3);
+    }
+
+    /* Category bars */
     .dash-bar-wrap {
       display: flex;
       flex-direction: column;
-      gap: 8px
+      gap: 8px;
     }
 
     .dash-bar-item {
       display: flex;
       align-items: center;
-      gap: 8px
+      gap: 8px;
     }
 
     .dash-bar-name {
       font-size: 12px;
+      font-weight: 600;
       color: var(--text2);
       width: 60px;
       text-align: right;
       overflow: hidden;
       text-overflow: ellipsis;
-      white-space: nowrap
+      white-space: nowrap;
+      font-family: 'Quicksand', 'Nunito', var(--font);
     }
 
     .dash-bar {
       flex: 1;
-      height: 6px;
-      background: var(--bg4);
-      border-radius: 3px;
-      overflow: hidden
+      height: 8px;
+      background: var(--bg3);
+      border-radius: 4px;
+      overflow: hidden;
+      box-shadow: inset 0 1px 3px rgba(0,0,0,0.3);
     }
 
     .dash-bar-fill {
       height: 100%;
-      background: var(--lime);
-      border-radius: 3px;
-      transition: width .5s
+      background: linear-gradient(90deg, var(--lime-dim), var(--lime));
+      border-radius: 4px;
+      width: 0;
+      box-shadow: 0 0 10px rgba(196, 241, 53, 0.5);
+      transition: width .8s var(--ease-out);
     }
 
     .dash-bar-amt {
       font-size: 11px;
-      font-family: var(--mono);
-      color: var(--text3);
-      width: 50px
+      font-weight: 700;
+      font-family: 'Quicksand', 'Nunito', var(--font);
+      color: var(--lime);
+      width: 48px;
+      text-align: right;
     }
 
-    /* Savings ring */
-    .savings-ring {
-      width: 80px;
-      height: 80px;
-      margin: 0 auto 8px
-    }
-
-    .savings-ring svg {
-      transform: rotate(-90deg)
-    }
-
-    .savings-ring circle {
-      fill: none;
-      stroke-width: 6;
-      stroke-linecap: round
-    }
-
-    .savings-ring .track {
-      stroke: var(--bg4)
-    }
-
-    .savings-ring .fill {
-      stroke: var(--lime);
-      transition: stroke-dashoffset .8s
-    }
-
-    /* Recent tx */
+    /* Recent transactions */
     .tx-list {
       display: flex;
       flex-direction: column;
-      gap: 4px
+      gap: 2px;
     }
 
     .tx-item {
       display: flex;
       justify-content: space-between;
-      font-size: 12px;
-      padding: 4px 0;
-      border-bottom: 1px solid var(--bg3)
+      align-items: center;
+      font-size: 13px;
+      padding: 12px 14px;
+      margin: 4px 0;
+      border-radius: 12px;
+      background: rgba(196, 241, 53, 0.06);
+      border: 1px solid rgba(196, 241, 53, 0.1);
+      opacity: 0;
+      transition: transform .2s, background .2s;
+      animation: tx-in .25s var(--ease-out) forwards;
+    }
+
+    .tx-item:hover {
+      background: rgba(196, 241, 53, 0.12);
+      transform: scale(1.02);
+    }
+
+    .tx-item:last-child {
+      border-bottom: none;
     }
 
     .tx-cat {
-      color: var(--text2)
+      font-weight: 700;
+      color: var(--text);
+      font-family: 'Quicksand', 'Nunito', var(--font);
+      letter-spacing: .02em;
+    }
+
+    .tx-date {
+      color: var(--text3);
+      font-family: var(--mono);
+      font-size: 10px;
     }
 
     .tx-amt {
-      font-family: var(--mono);
-      color: var(--red)
+      font-family: 'Quicksand', 'Nunito', var(--font);
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--lime);
+      text-shadow: 0 0 10px rgba(196, 241, 53, 0.3);
     }
 
-    /* Responsive */
-    @media(max-width:700px) {
+    @keyframes tx-in {
+      to {
+        opacity: 1;
+      }
+    }
+
+    /* ─── TOAST ─── */
+    .toast {
+      position: fixed;
+      bottom: 28px;
+      left: 50%;
+      transform: translateX(-50%) translateY(16px);
+      background: var(--bg3);
+      border: 1px solid var(--bg4);
+      border-radius: var(--radius-sm);
+      padding: 10px 20px;
+      font-size: 12px;
+      font-family: var(--mono);
+      color: var(--text2);
+      letter-spacing: .04em;
+      opacity: 0;
+      transition: opacity .25s, transform .25s var(--ease-spring);
+      pointer-events: none;
+      z-index: 10000;
+      white-space: nowrap;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    .toast.error {
+      border-color: rgba(242, 92, 92, .4);
+      color: var(--red);
+    }
+
+    /* ─── MOBILE ─── */
+    @media (max-width: 700px) {
       .dash-toggle-btn {
-        display: block;
+        display: flex;
+        align-items: center;
       }
 
       .dash-panel {
         position: fixed;
         top: 0;
-        right: -320px;
+        right: -300px;
         width: 280px;
         height: 100vh;
-        background: var(--bg2);
-        z-index: 100;
-        transition: right 0.3s ease;
-        box-shadow: -5px 0 25px rgba(0,0,0,0.5);
+        z-index: 200;
         display: block !important;
+        transition: right .35s var(--ease-out), box-shadow .35s;
+        box-shadow: none;
       }
 
       .dash-panel.open {
         right: 0;
+        box-shadow: -20px 0 60px rgba(0, 0, 0, .6);
       }
 
       .dash-overlay {
         position: fixed;
         inset: 0;
-        background: rgba(0,0,0,0.5);
-        z-index: 99;
+        background: rgba(0, 0, 0, .6);
+        z-index: 199;
         opacity: 0;
         pointer-events: none;
-        transition: opacity 0.3s ease;
+        transition: opacity .35s;
+        backdrop-filter: blur(4px);
       }
 
       .dash-overlay.open {
@@ -815,42 +1433,57 @@
       }
 
       .msg {
-        max-width: 90%
+        max-width: 88%;
+      }
+
+      .landing-input {
+        width: 280px;
       }
     }
 
-    /* Toast */
-    .toast {
-      position: fixed;
-      bottom: 24px;
-      left: 50%;
-      transform: translateX(-50%) translateY(20px);
-      background: var(--bg3);
-      border: 1px solid var(--bg4);
-      border-radius: var(--radius-sm);
-      padding: 10px 20px;
-      font-size: 13px;
-      color: var(--text2);
-      opacity: 0;
-      transition: all .3s;
+    /* ─── RIPPLE EFFECT ─── */
+    .ripple-fx {
+      position: absolute;
+      border-radius: 50%;
+      background: rgba(196, 241, 53, .3);
       pointer-events: none;
-      z-index: 100
+      animation: ripple-fx .6s ease-out forwards;
     }
 
-    .toast.show {
-      opacity: 1;
-      transform: translateX(-50%) translateY(0)
+    @keyframes ripple-fx {
+      from {
+        transform: scale(0);
+        opacity: 1;
+      }
+
+      to {
+        transform: scale(3);
+        opacity: 0;
+      }
     }
   </style>
 </head>
 
-<body>
+<body data-screen="landing">
+
+  <!-- Ambient bg -->
+  <div class="ambient">
+    <div class="ambient-dot a1" id="amb1"></div>
+    <div class="ambient-dot a2" id="amb2"></div>
+  </div>
+
+  <div class="app-row">
+    <div class="screens-col">
 
   <!-- ===== LANDING ===== -->
   <div id="landing" class="screen active">
-    <div class="landing-logo">Artha<span>voice finance agent</span></div>
-    <input id="username-input" class="landing-input" placeholder="pick a username" maxlength="24" autocomplete="off"
-      spellcheck="false">
+    <div class="landing-wordmark">Artha</div>
+    <div class="landing-tagline">voice finance agent</div>
+    <div class="landing-input-wrap">
+      <input id="username-input" class="landing-input" placeholder="pick a username" maxlength="24" autocomplete="off"
+        spellcheck="false">
+      <span class="landing-input-icon">@</span>
+    </div>
     <div class="mode-btns">
       <button class="mode-btn" id="btn-mic" onclick="startSession('mic')">
         <svg viewBox="0 0 24 24">
@@ -874,37 +1507,73 @@
   <!-- ===== CALL SCREEN ===== -->
   <div id="call" class="screen">
     <div class="call-header">
-      <div class="call-name" id="call-user"></div>
-      <div class="call-status" id="call-status">connecting...</div>
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <button class="dash-toggle-btn" onclick="toggleDashboard()" aria-label="Toggle dashboard">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <rect x="3" y="3" width="7" height="7" rx="1" />
+            <rect x="14" y="3" width="7" height="7" rx="1" />
+            <rect x="3" y="14" width="7" height="7" rx="1" />
+            <rect x="14" y="14" width="7" height="7" rx="1" />
+          </svg>
+        </button>
+        <div class="call-name" id="call-user"></div>
+      </div>
+      <div class="call-status-pill">
+        <div class="status-dot" id="status-dot"></div>
+        <span id="call-status">connecting</span>
+      </div>
     </div>
 
-    <div class="face-wrap">
-      <div class="wave-side left" id="wave-l">
-        <div class="wave-bar w5"></div><div class="wave-bar w3"></div><div class="wave-bar w1"></div>
-        <div class="wave-bar w2"></div><div class="wave-bar w4"></div><div class="wave-bar w5"></div>
-      </div>
-      <div class="face" id="face">
-        <div class="eyes-row" id="eyes-row">
-          <div class="eye" id="eye-l"><div class="iris" id="iris-l"></div><div class="lid" id="lid-l"></div></div>
-          <div class="eye" id="eye-r"><div class="iris" id="iris-r"></div><div class="lid" id="lid-r"></div></div>
+    <div class="face-container">
+      <!-- Orbit & ripples -->
+      <div class="face-orbit" id="face-orbit"></div>
+      <div class="ripple-ring r1" id="rr1"></div>
+      <div class="ripple-ring r2" id="rr2"></div>
+      <div class="ripple-ring r3" id="rr3"></div>
+
+      <div class="face-wrap">
+        <div class="wave-side left" id="wave-l">
+          <div class="wave-bar w5"></div>
+          <div class="wave-bar w3"></div>
+          <div class="wave-bar w1"></div>
+          <div class="wave-bar w2"></div>
+          <div class="wave-bar w4"></div>
+          <div class="wave-bar w5"></div>
         </div>
-        <div class="smile-wrap" id="smile">
-          <svg viewBox="0 0 80 36" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M8 8 Q40 34 72 8" stroke="#efefef" stroke-width="5" stroke-linecap="round" fill="none" />
-          </svg>
+
+        <div class="face" id="face">
+          <div class="eyes-row" id="eyes-row">
+            <div class="eye" id="eye-l">
+              <div class="iris" id="iris-l"></div>
+              <div class="lid" id="lid-l"></div>
+            </div>
+            <div class="eye" id="eye-r">
+              <div class="iris" id="iris-r"></div>
+              <div class="lid" id="lid-r"></div>
+            </div>
+          </div>
+          <div class="smile-wrap" id="smile">
+            <svg viewBox="0 0 72 32" fill="none">
+              <path d="M6 6 Q36 30 66 6" stroke="#f0f0ee" stroke-width="4.5" stroke-linecap="round" fill="none" />
+            </svg>
+          </div>
         </div>
-      </div>
-      <div class="wave-side right" id="wave-r">
-        <div class="wave-bar w5"></div><div class="wave-bar w3"></div><div class="wave-bar w1"></div>
-        <div class="wave-bar w2"></div><div class="wave-bar w4"></div><div class="wave-bar w5"></div>
+
+        <div class="wave-side right" id="wave-r">
+          <div class="wave-bar w5"></div>
+          <div class="wave-bar w3"></div>
+          <div class="wave-bar w1"></div>
+          <div class="wave-bar w2"></div>
+          <div class="wave-bar w4"></div>
+          <div class="wave-bar w5"></div>
+        </div>
       </div>
     </div>
 
     <div class="vol-bars" id="vol-bars"></div>
-
     <div class="call-transcript" id="call-transcript"></div>
 
-    <button class="end-call-btn" onclick="endSession()">
+    <button class="end-call-btn" onclick="endSession()" aria-label="End call">
       <svg viewBox="0 0 24 24">
         <path
           d="M10.68 13.31a16 16 0 0 0 3.41 2.6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7 2 2 0 0 1 1.72 2v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.93.36 1.84.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 2.59 3.4z" />
@@ -915,88 +1584,93 @@
   <!-- ===== TEXT CHAT ===== -->
   <div id="chat" class="screen">
     <div class="chat-header">
-      <div style="display: flex; align-items: center; gap: 12px;">
-        <button class="dash-toggle-btn" onclick="toggleDashboard()">
-          <svg viewBox="0 0 24 24"><path d="M3 12h18M3 6h18M3 18h18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-        </button>
-        <div class="chat-title">artha</div>
-      </div>
-      <button class="chat-end-btn" onclick="endSession()">end session</button>
-    </div>
-    <div class="chat-body">
-      <div class="chat-messages" id="chat-messages"></div>
-      <div class="dash-overlay" id="dash-overlay" onclick="toggleDashboard()"></div>
-      <div class="dash-panel" id="dash-panel">
-        <div class="dash-section">
-          <div class="dash-label">savings rate</div>
-          <div class="savings-ring" id="savings-ring">
-            <svg viewBox="0 0 80 80">
-              <circle class="track" cx="40" cy="40" r="34" />
-              <circle class="fill" id="savings-fill" cx="40" cy="40" r="34" stroke-dasharray="213.6"
-                stroke-dashoffset="213.6" />
+        <div class="chat-header-left">
+          <button class="dash-toggle-btn" onclick="toggleDashboard()" aria-label="Toggle dashboard">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+              <rect x="3" y="3" width="7" height="7" rx="1" />
+              <rect x="14" y="3" width="7" height="7" rx="1" />
+              <rect x="3" y="14" width="7" height="7" rx="1" />
+              <rect x="14" y="14" width="7" height="7" rx="1" />
             </svg>
-          </div>
-          <div class="dash-sub" style="text-align:center" id="savings-label">0%</div>
+          </button>
+          <div class="chat-title">artha</div>
+          <div class="chat-badge">text</div>
         </div>
-        <div class="dash-section">
-          <div class="dash-label">income</div>
-          <div class="dash-value" id="dash-income">₹0</div>
-        </div>
-        <div class="dash-section">
-          <div class="dash-label">spent</div>
-          <div class="dash-value" id="dash-expense" style="color:var(--red)">₹0</div>
-        </div>
-        <div class="dash-section">
-          <div class="dash-label">by category</div>
-          <div class="dash-bar-wrap" id="dash-cats"></div>
-        </div>
-        <div class="dash-section">
-          <div class="dash-label">recent</div>
-          <div class="tx-list" id="dash-tx"></div>
-        </div>
+        <button class="chat-end-btn" onclick="endSession()">end session</button>
       </div>
+
+      <div class="chat-body">
+        <div class="chat-messages" id="chat-messages"></div>
+      </div>
+
+      <div class="chat-input-wrap">
+        <input class="chat-input" id="chat-input" placeholder="Kuch bhi pucho..." autocomplete="off">
+        <button class="chat-send" id="chat-send" onclick="sendText()" aria-label="Send">
+          <svg viewBox="0 0 24 24">
+            <line x1="22" y1="2" x2="11" y2="13" />
+            <polygon points="22 2 15 22 11 13 2 9 22 2" />
+          </svg>
+        </button>
     </div>
-    <div class="chat-input-wrap">
-      <input class="chat-input" id="chat-input" placeholder="Type a message..." autocomplete="off">
-      <button class="chat-send" id="chat-send" onclick="sendText()">
-        <svg viewBox="0 0 24 24">
-          <line x1="22" y1="2" x2="11" y2="13" />
-          <polygon points="22 2 15 22 11 13 2 9 22 2" />
+  </div> <!-- Close #chat -->
+  </div> <!-- Close .screens-col -->
+
+  <div class="dash-overlay" id="dash-overlay" onclick="toggleDashboard()"></div>
+  <div class="dash-panel" id="dash-panel">
+    <div class="dash-section">
+      <div class="dash-label">savings rate</div>
+      <div class="savings-ring">
+        <svg viewBox="0 0 76 76">
+          <circle class="track" cx="38" cy="38" r="32" />
+          <circle class="fill" id="savings-fill" cx="38" cy="38" r="32" stroke-dasharray="201.1" stroke-dashoffset="201.1" />
         </svg>
-      </button>
+      </div>
+      <div class="savings-label" id="savings-label">0%</div>
+    </div>
+    <div class="dash-section">
+      <div class="dash-label">income</div>
+      <div class="dash-value" id="dash-income">₹0</div>
+      <div class="dash-sub">this month</div>
+    </div>
+    <div class="dash-section">
+      <div class="dash-label">spent</div>
+      <div class="dash-value" id="dash-expense" style="color:var(--red)">₹0</div>
+      <div class="dash-sub">this month</div>
+    </div>
+    <div class="dash-section">
+      <div class="dash-label">by category</div>
+      <div class="dash-bar-wrap" id="dash-cats"></div>
+    </div>
+    <div class="dash-section">
+      <div class="dash-label">recent</div>
+      <div class="tx-list" id="dash-tx"></div>
     </div>
   </div>
+  </div> <!-- Close .app-row -->
 
-  <div class="toast" id="toast"></div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
   <script>
-    // ===== STATE =====
-    let ws = null;
-    let userId = '';
-    let sessionMode = null;
-    let audioCtx = null;
-    let micStream = null;
-    let scriptNode = null;
-    let isRecording = false;
-    let silenceTimer = null;
-    let audioQueue = [];
-    let isPlayingAudio = false;
-    let currentAudio = null;  // track playing Audio object so we can pause it on barge-in
-    let streamingEl = null;
+    // ═══════════════════════════════════════════════════
+    //  STATE
+    // ═══════════════════════════════════════════════════
+    let ws = null, userId = '', sessionMode = null;
+    let audioCtx = null, micStream = null, scriptNode = null;
+    let isRecording = false, silenceTimer = null;
+    let audioQueue = [], isPlayingAudio = false, currentAudio = null;
+    let streamingEl = null, bargedIn = false;
 
-    // Barge-in thresholds
-    const SILENCE_THRESHOLD = 0.008;       // normal VAD threshold
-    const BARGE_IN_THRESHOLD_MIN = 0.015;  // floor: always at least this high during TTS
-    let dynamicBargeInThreshold = 0.022;   // updated after sampling TTS bleed-through
-    let baselineSamples = [];              // RMS samples collected during TTS playback
-    const BASELINE_SAMPLE_COUNT = 5;       // ~1.3s at 4096/16kHz per callback
-
-    let bargedIn = false;  // true after a barge-in fires, suppresses duplicate stream_audio_end
-
+    const SILENCE_THRESHOLD = 0.008;
+    const BARGE_IN_THRESHOLD_MIN = 0.015;
+    let dynamicBargeInThreshold = 0.022;
+    let baselineSamples = [];
+    const BASELINE_SAMPLE_COUNT = 5;
     const SILENCE_DURATION = 700;
-    const VOL_BAR_COUNT = 12;
+    const VOL_BAR_COUNT = 14;
 
-    // ===== INIT =====
+    // ═══════════════════════════════════════════════════
+    //  INIT
+    // ═══════════════════════════════════════════════════
     const usernameInput = document.getElementById('username-input');
     const saved = localStorage.getItem('artha_user');
     if (saved) usernameInput.value = saved;
@@ -1004,41 +1678,79 @@
     // Build volume bars
     const volBarsEl = document.getElementById('vol-bars');
     for (let i = 0; i < VOL_BAR_COUNT; i++) {
-      const bar = document.createElement('div');
-      bar.className = 'vol-bar';
-      bar.style.height = '4px';
-      volBarsEl.appendChild(bar);
+      const b = document.createElement('div');
+      b.className = 'vol-bar';
+      b.style.height = '3px';
+      volBarsEl.appendChild(b);
     }
 
+    // Landing: Enter key triggers text mode
     usernameInput.addEventListener('keydown', e => {
-      if (e.key === 'Enter') document.getElementById('btn-text').click();
+      if (e.key === 'Enter') startSession('text');
     });
 
-    // ===== SCREEN NAV =====
+    // Activate ambient bg after short delay
+    setTimeout(() => {
+      document.getElementById('amb1').classList.add('active');
+      document.getElementById('amb2').classList.add('active');
+    }, 300);
+
+    // ═══════════════════════════════════════════════════
+    //  SCREEN NAVIGATION
+    // ═══════════════════════════════════════════════════
     function showScreen(id) {
-      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-      document.getElementById(id).classList.add('active');
+      document.body.dataset.screen = id;
+      document.querySelectorAll('.screen.active').forEach(s => {
+        s.classList.remove('active');
+      });
+      const target = document.getElementById(id);
+      target.classList.add('active');
     }
 
     function toggleDashboard() {
       const panel = document.getElementById('dash-panel');
       const overlay = document.getElementById('dash-overlay');
-      if (panel) panel.classList.toggle('open');
-      if (overlay) overlay.classList.toggle('open');
+      panel.classList.toggle('open');
+      overlay.classList.toggle('open');
     }
 
-    function toast(msg) {
+    function toast(msg, type = '') {
       const t = document.getElementById('toast');
       t.textContent = msg;
+      t.className = 'toast' + (type ? ' ' + type : '');
       t.classList.add('show');
-      setTimeout(() => t.classList.remove('show'), 3000);
+      setTimeout(() => t.classList.remove('show'), 3200);
     }
 
-    // ===== SESSION START =====
+    function showError(msg) {
+      const el = document.getElementById('landing-err');
+      el.textContent = msg;
+      el.classList.add('show');
+      setTimeout(() => el.classList.remove('show'), 3000);
+    }
+
+    // Ripple on button click
+    function addRipple(e, el) {
+      const r = document.createElement('div');
+      const rect = el.getBoundingClientRect();
+      const size = Math.max(rect.width, rect.height);
+      r.className = 'ripple-fx';
+      r.style.cssText = `width:${size / 2}px;height:${size / 2}px;left:${e.clientX - rect.left - size / 4}px;top:${e.clientY - rect.top - size / 4}px`;
+      el.appendChild(r);
+      setTimeout(() => r.remove(), 600);
+    }
+
+    document.querySelectorAll('.mode-btn').forEach(btn => {
+      btn.addEventListener('click', e => addRipple(e, btn));
+    });
+
+    // ═══════════════════════════════════════════════════
+    //  SESSION
+    // ═══════════════════════════════════════════════════
     function startSession(mode) {
       userId = usernameInput.value.trim().replace(/[^a-zA-Z0-9_-]/g, '');
       if (!userId) {
-        document.getElementById('landing-err').textContent = 'enter a username first';
+        showError('enter a username first');
         usernameInput.focus();
         return;
       }
@@ -1047,11 +1759,12 @@
 
       const proto = location.protocol === 'https:' ? 'wss' : 'ws';
       ws = new WebSocket(`${proto}://${location.host}/ws/${userId}`);
+
       ws.onopen = () => {
         ws.send(JSON.stringify({ type: 'session_start', mode }));
         if (mode === 'mic') {
-          showScreen('call');
           document.getElementById('call-user').textContent = userId;
+          showScreen('call');
           startMic();
         } else {
           showScreen('chat');
@@ -1059,11 +1772,10 @@
         }
       };
       ws.onclose = () => { toast('Connection closed'); cleanup(); };
-      ws.onerror = () => toast('Connection error');
+      ws.onerror = () => toast('Connection error', 'error');
       ws.onmessage = e => handleMsg(JSON.parse(e.data));
     }
 
-    // ===== END SESSION =====
     function endSession() {
       if (ws && ws.readyState === WebSocket.OPEN) {
         ws.send(JSON.stringify({ type: 'end_session' }));
@@ -1074,25 +1786,160 @@
 
     function cleanup() {
       stopMic();
-      audioQueue = [];
-      isPlayingAudio = false;
-      currentAudio = null;
-      streamingEl = null;
+      audioQueue = []; isPlayingAudio = false; currentAudio = null; streamingEl = null;
       if (ws) { try { ws.close(); } catch (e) { } ws = null; }
       document.getElementById('call-transcript').innerHTML = '';
       document.getElementById('chat-messages').innerHTML = '';
+      setOrbState('idle');
     }
 
-    // ===== MIC + VAD =====
+    // ═══════════════════════════════════════════════════
+    //  FACE / ORB SYSTEM
+    // ═══════════════════════════════════════════════════
+    const face = document.getElementById('face');
+    const eyeL = document.getElementById('eye-l');
+    const eyeR = document.getElementById('eye-r');
+    const irisL = document.getElementById('iris-l');
+    const irisR = document.getElementById('iris-r');
+    const lidL = document.getElementById('lid-l');
+    const lidR = document.getElementById('lid-r');
+    const smile = document.getElementById('smile');
+    const waveL = document.getElementById('wave-l');
+    const waveR = document.getElementById('wave-r');
+    const orbit = document.getElementById('face-orbit');
+    const eyesRow = document.getElementById('eyes-row');
+    const rr1 = document.getElementById('rr1');
+    const rr2 = document.getElementById('rr2');
+    const rr3 = document.getElementById('rr3');
+    const sdot = document.getElementById('status-dot');
+
+    let faceState = 'idle';
+    let blinkTimer = null;
+
+    function resetFace() {
+      face.style.animation = '';
+      [eyeL, eyeR].forEach(e => {
+        e.style.animation = '';
+        e.style.width = e.style.height = '88px';
+        e.style.borderRadius = '50%';
+        e.classList.remove('speaking');
+      });
+      [irisL, irisR].forEach(i => { i.style.animation = ''; i.style.transform = 'translate(-50%,-50%)'; });
+      lidL.style.height = lidR.style.height = '0';
+      smile.classList.remove('visible');
+      waveL.classList.remove('active');
+      waveR.classList.remove('active');
+      orbit.className = 'face-orbit';
+      [rr1, rr2, rr3].forEach(r => r.style.display = 'none');
+      eyesRow.style.marginBottom = '14px';
+      clearTimeout(blinkTimer);
+    }
+
+    function blink(cb) {
+      lidL.style.height = lidR.style.height = '52%';
+      setTimeout(() => {
+        lidL.style.height = lidR.style.height = '0';
+        if (cb) cb();
+      }, 140);
+    }
+
+    function scheduleBlink() {
+      blinkTimer = setTimeout(() => {
+        if (['idle', 'listening', 'speaking'].includes(faceState)) {
+          blink(() => scheduleBlink());
+        }
+      }, 2400 + Math.random() * 3000);
+    }
+
+    function movePupils(dx, dy) {
+      const t = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`;
+      irisL.style.transform = t;
+      irisR.style.transform = t;
+    }
+
+    window.updateRMS = function (rms) {
+      if (faceState !== 'listening') return;
+      const v = Math.min(rms * 14, 1);
+      movePupils(0, v * 9 - 4);
+    };
+
+    function setCallStatus(text, dotClass) {
+      const el = document.getElementById('call-status');
+      if (el) el.textContent = text;
+      if (sdot) sdot.className = 'status-dot' + (dotClass ? ' ' + dotClass : '');
+    }
+
+    function setOrbState(s) {
+      faceState = s;
+      resetFace();
+
+      if (s === 'idle') {
+        face.style.animation = 'breathe 4.5s ease-in-out infinite';
+        setCallStatus('ready', '');
+        scheduleBlink();
+      }
+
+      if (s === 'listening') {
+        eyeL.style.width = eyeR.style.width = '98px';
+        eyeL.style.height = eyeR.style.height = '98px';
+        waveL.classList.add('active');
+        waveR.classList.add('active');
+        orbit.classList.add('listening');
+        [rr1, rr2, rr3].forEach(r => r.style.display = '');
+        setCallStatus('listening', 'active');
+        scheduleBlink();
+      }
+
+      if (s === 'thinking') {
+        movePupils(-11, -13);
+        lidR.style.height = '38%';
+        face.style.animation = 'think-sway 3s ease-in-out infinite';
+        setCallStatus('thinking', 'thinking');
+      }
+
+      if (s === 'speaking') {
+        irisL.style.animation = 'spk-bounce .42s ease-in-out infinite alternate';
+        irisR.style.animation = 'spk-bounce .42s ease-in-out infinite alternate';
+        eyeL.style.height = eyeR.style.height = '82px';
+        eyeL.classList.add('speaking');
+        eyeR.classList.add('speaking');
+        eyesRow.style.marginBottom = '10px';
+        smile.classList.add('visible');
+        orbit.classList.add('speaking');
+        setCallStatus('speaking', 'speaking');
+        scheduleBlink();
+      }
+
+      if (s === 'barge-in') {
+        [eyeL, eyeR].forEach(e => { e.style.animation = 'eye-pop .48s ease forwards'; });
+        waveL.classList.add('active');
+        waveR.classList.add('active');
+        setCallStatus('listening', 'active');
+        setTimeout(() => { if (faceState === 'barge-in') setOrbState('listening'); }, 500);
+      }
+    }
+
+    // Mouse-driven pupil sway on call screen
+    document.addEventListener('mousemove', e => {
+      if (faceState !== 'idle' && faceState !== 'thinking') return;
+      const dx = (e.clientX / window.innerWidth - .5) * 10;
+      const dy = (e.clientY / window.innerHeight - .5) * 8;
+      movePupils(dx, dy);
+    });
+
+    // ═══════════════════════════════════════════════════
+    //  MIC + VAD
+    // ═══════════════════════════════════════════════════
     async function startMic() {
       try {
         audioCtx = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 16000 });
-        micStream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, sampleRate: 16000 } });
+        micStream = await navigator.mediaDevices.getUserMedia({
+          audio: { echoCancellation: true, noiseSuppression: true, sampleRate: 16000 }
+        });
         const source = audioCtx.createMediaStreamSource(micStream);
         scriptNode = audioCtx.createScriptProcessor(4096, 1, 1);
 
-        let speaking = false;
-        let chunks = [];
+        let speaking = false, chunks = [];
 
         scriptNode.onaudioprocess = e => {
           const data = e.inputBuffer.getChannelData(0);
@@ -1101,59 +1948,45 @@
           const rms = Math.sqrt(sum / data.length);
 
           updateVolBars(rms);
-          if (typeof updateRMS === 'function') updateRMS(rms);
+          if (typeof window.updateRMS === 'function') window.updateRMS(rms);
 
-          // During TTS: collect RMS samples to build a dynamic baseline of TTS bleed-through.
-          // Once we have enough samples, threshold = max(mean * 2.5, floor).
-          // This adapts: headphones have near-zero bleed, laptop speakers have more.
           if (isPlayingAudio) {
             if (baselineSamples.length < BASELINE_SAMPLE_COUNT) {
               baselineSamples.push(rms);
               if (baselineSamples.length === BASELINE_SAMPLE_COUNT) {
                 const mean = baselineSamples.reduce((a, b) => a + b, 0) / BASELINE_SAMPLE_COUNT;
                 dynamicBargeInThreshold = Math.max(mean * 2.5, BARGE_IN_THRESHOLD_MIN);
-                console.log(`[VAD] dynamic barge-in threshold: ${dynamicBargeInThreshold.toFixed(4)} (bleed mean: ${mean.toFixed(4)})`);
               }
             }
           }
 
-          // While TTS is playing, only fire on a much louder barge-in signal.
           const threshold = isPlayingAudio ? dynamicBargeInThreshold : SILENCE_THRESHOLD;
 
           if (rms > threshold) {
-            if (isPlayingAudio) {
-              // User interrupted — stop TTS immediately
-              bargeIn();
-            }
-
+            if (isPlayingAudio) bargeIn();
             if (!speaking) {
               speaking = true;
-              bargedIn = false;  // reset for this new recording window
+              bargedIn = false;
               ws.send(JSON.stringify({ type: 'stream_audio_start', sampleRate: audioCtx.sampleRate }));
               setOrbState('listening');
-              document.getElementById('call-status').textContent = 'listening...';
             }
             clearTimeout(silenceTimer);
             silenceTimer = null;
 
-            // Convert float32 to int16 and send
             const int16 = new Int16Array(data.length);
             for (let i = 0; i < data.length; i++) {
               const s = Math.max(-1, Math.min(1, data[i]));
               int16[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
             }
-            const b64 = arrayBufferToBase64(int16.buffer);
-            ws.send(JSON.stringify({ type: 'stream_audio_chunk', data: b64 }));
+            ws.send(JSON.stringify({ type: 'stream_audio_chunk', data: arrayBufferToBase64(int16.buffer) }));
 
           } else if (speaking) {
             if (!silenceTimer) {
               silenceTimer = setTimeout(() => {
                 speaking = false;
-                // Don't send stream_audio_end if this window was already handled by a barge-in
                 if (!bargedIn) {
                   ws.send(JSON.stringify({ type: 'stream_audio_end' }));
                   setOrbState('thinking');
-                  document.getElementById('call-status').textContent = 'thinking...';
                 }
                 silenceTimer = null;
               }, SILENCE_DURATION);
@@ -1165,34 +1998,23 @@
         scriptNode.connect(audioCtx.destination);
         isRecording = true;
         setOrbState('idle');
-        document.getElementById('call-status').textContent = 'ready — speak anytime';
       } catch (err) {
-        toast('Mic access denied — check browser permissions');
-        console.error('[Mic]', err);
+        toast('Mic access denied', 'error');
       }
     }
 
-    // Barge-in: user spoke while bot was talking — stop TTS immediately
     function bargeIn() {
       if (!isPlayingAudio) return;
-      // Pause currently playing audio
-      if (currentAudio) {
-        try { currentAudio.pause(); } catch (e) { }
-        currentAudio = null;
-      }
-      // Clear pending queue
+      if (currentAudio) { try { currentAudio.pause(); } catch (e) { } currentAudio = null; }
       audioQueue = [];
       isPlayingAudio = false;
-      bargedIn = true;  // suppress any pending silence timer stream_audio_end
-      // Reset dynamic baseline for next TTS
+      bargedIn = true;
       baselineSamples = [];
       dynamicBargeInThreshold = 0.022;
-      // Tell server so it can cancel any in-flight TTS generation
       if (ws && ws.readyState === WebSocket.OPEN) {
         ws.send(JSON.stringify({ type: 'barge_in' }));
       }
-      setOrbState('listening');
-      document.getElementById('call-status').textContent = 'listening...';
+      setOrbState('barge-in');
     }
 
     function stopMic() {
@@ -1205,124 +2027,20 @@
 
     function updateVolBars(rms) {
       const bars = volBarsEl.children;
-      const level = Math.min(rms * 12, 1);
-      for (let i = 0; i < bars.length; i++) {
-        const dist = Math.abs(i - bars.length / 2) / (bars.length / 2);
-        const h = Math.max(4, level * (1 - dist * 0.6) * 24);
+      const level = Math.min(rms * 14, 1);
+      const n = bars.length;
+      for (let i = 0; i < n; i++) {
+        const dist = Math.abs(i - (n - 1) / 2) / ((n - 1) / 2);
+        const envelope = 1 - dist * 0.65;
+        const h = Math.max(3, level * envelope * 26);
         bars[i].style.height = h + 'px';
-        bars[i].style.opacity = 0.3 + level * 0.7;
+        bars[i].style.opacity = 0.25 + level * 0.75;
       }
     }
 
-    const face = document.getElementById('face');
-    const eyeL = document.getElementById('eye-l');
-    const eyeR = document.getElementById('eye-r');
-    const irisL = document.getElementById('iris-l');
-    const irisR = document.getElementById('iris-r');
-    const lidL = document.getElementById('lid-l');
-    const lidR = document.getElementById('lid-r');
-    const smile = document.getElementById('smile');
-    const waveL = document.getElementById('wave-l');
-    const waveR = document.getElementById('wave-r');
-    const eyesRow = document.getElementById('eyes-row');
-
-    let faceState = 'idle';
-    let blinkTimer = null;
-
-    function resetFace() {
-      if (!face) return;
-      face.style.animation = '';
-      eyeL.style.animation = eyeR.style.animation = '';
-      irisL.style.animation = irisR.style.animation = '';
-      eyeL.style.width = eyeR.style.width = '96px';
-      eyeL.style.height = eyeR.style.height = '96px';
-      lidL.style.height = lidR.style.height = '0';
-      irisL.style.transform = irisR.style.transform = 'translate(-50%,-50%)';
-      smile.classList.remove('visible');
-      waveL.classList.remove('active');
-      waveR.classList.remove('active');
-      eyesRow.style.marginBottom = '14px';
-      clearTimeout(blinkTimer);
-    }
-
-    function blinkFace(cb) {
-      lidL.style.height = lidR.style.height = '52%';
-      setTimeout(() => {
-        lidL.style.height = lidR.style.height = '0';
-        if (cb) cb();
-      }, 130);
-    }
-
-    function scheduleBlink() {
-      blinkTimer = setTimeout(() => {
-        if (faceState === 'idle' || faceState === 'listening' || faceState === 'speaking') {
-          blinkFace(() => scheduleBlink());
-        }
-      }, 2200 + Math.random() * 2800);
-    }
-
-    function movePupils(dx, dy) {
-      const t = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`;
-      irisL.style.transform = t;
-      irisR.style.transform = t;
-    }
-
-    window.updateRMS = function (rms) {
-      if (faceState !== 'listening') return;
-      const val = Math.min(rms * 15, 1);
-      movePupils(0, val * 8 - 4);
-    }
-
-    function setOrbState(s) {
-      faceState = s;
-      resetFace();
-      if (!face) return;
-
-      if (s === 'idle') {
-        face.style.animation = 'breathe 4s ease-in-out infinite';
-        scheduleBlink();
-      }
-
-      if (s === 'listening') {
-        eyeL.style.width = eyeR.style.width = '106px';
-        eyeL.style.height = eyeR.style.height = '106px';
-        waveL.classList.add('active');
-        waveR.classList.add('active');
-        scheduleBlink();
-      }
-
-      if (s === 'thinking') {
-        movePupils(-10, -12);
-        lidR.style.height = '40%';
-        face.style.animation = 'breathe 2s ease-in-out infinite';
-      }
-
-      if (s === 'speaking') {
-        irisL.style.animation = 'spk-bounce .38s ease-in-out infinite alternate';
-        irisR.style.animation = 'spk-bounce .38s ease-in-out infinite alternate';
-        eyeL.style.height = eyeR.style.height = '88px';
-        eyesRow.style.marginBottom = '10px';
-        smile.classList.add('visible');
-        scheduleBlink();
-      }
-
-      if (s === 'barge-in') {
-        eyeL.style.animation = 'pop .45s ease forwards';
-        eyeR.style.animation = 'pop .45s ease forwards';
-        waveL.classList.add('active');
-        waveR.classList.add('active');
-        setTimeout(() => { if (faceState === 'barge-in') setOrbState('listening'); }, 480);
-      }
-    }
-
-    function arrayBufferToBase64(buffer) {
-      const bytes = new Uint8Array(buffer);
-      let binary = '';
-      for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
-      return btoa(binary);
-    }
-
-    // ===== TEXT CHAT =====
+    // ═══════════════════════════════════════════════════
+    //  TEXT CHAT
+    // ═══════════════════════════════════════════════════
     const chatInput = document.getElementById('chat-input');
     chatInput.addEventListener('keydown', e => {
       if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendText(); }
@@ -1354,7 +2072,9 @@
       container.scrollTop = container.scrollHeight;
     }
 
-    // ===== AUDIO PLAYBACK (ORDERED QUEUE) =====
+    // ═══════════════════════════════════════════════════
+    //  AUDIO QUEUE
+    // ═══════════════════════════════════════════════════
     function queueAudio(b64, index) {
       audioQueue.push({ b64, index });
       audioQueue.sort((a, b) => a.index - b.index);
@@ -1363,11 +2083,9 @@
 
     function playNext() {
       if (isPlayingAudio || audioQueue.length === 0) {
-        // Queue drained — orb back to idle, reset baseline for next TTS session
         if (!isPlayingAudio && audioQueue.length === 0 && sessionMode === 'mic') {
-          baselineSamples = [];  // next TTS will re-sample
+          baselineSamples = [];
           setOrbState('idle');
-          document.getElementById('call-status').textContent = 'ready — speak anytime';
         }
         return;
       }
@@ -1383,39 +2101,28 @@
       const audio = new Audio(url);
       currentAudio = audio;
 
-      audio.onended = () => {
-        URL.revokeObjectURL(url);
-        currentAudio = null;
-        isPlayingAudio = false;
-        playNext();
-      };
-      audio.onerror = () => {
-        currentAudio = null;
-        isPlayingAudio = false;
-        playNext();
-      };
+      audio.onended = () => { URL.revokeObjectURL(url); currentAudio = null; isPlayingAudio = false; playNext(); };
+      audio.onerror = () => { currentAudio = null; isPlayingAudio = false; playNext(); };
       audio.play().catch(() => { currentAudio = null; isPlayingAudio = false; playNext(); });
 
       if (sessionMode === 'mic') setOrbState('speaking');
     }
 
-    // ===== WS MESSAGE HANDLER =====
+    // ═══════════════════════════════════════════════════
+    //  WS MESSAGE HANDLER
+    // ═══════════════════════════════════════════════════
     function handleMsg(msg) {
       switch (msg.type) {
+
         case 'audio':
-          if (sessionMode === 'mic') {
-            addCallMsg('assistant', msg.text);
-            queueAudio(msg.data, 0);
-          } else {
-            addChatMsg('assistant', msg.text);
-            queueAudio(msg.data, 0);
-          }
+          if (sessionMode === 'mic') addCallMsg('assistant', msg.text);
+          else addChatMsg('assistant', msg.text);
+          queueAudio(msg.data, 0);
           break;
 
         case 'text_only':
           if (sessionMode === 'mic') {
             addCallMsg('assistant', msg.text);
-            document.getElementById('call-status').textContent = 'ready — speak anytime';
             setOrbState('idle');
           } else {
             addChatMsg('assistant', msg.text);
@@ -1423,21 +2130,12 @@
           break;
 
         case 'transcript':
-          if (sessionMode === 'mic') {
-            addCallMsg('user', msg.text);
-          } else {
-            addChatMsg('user', msg.text);
-          }
+          if (sessionMode === 'mic') addCallMsg('user', msg.text);
+          else addChatMsg('user', msg.text);
           break;
 
         case 'status':
-          if (sessionMode === 'mic') {
-            document.getElementById('call-status').textContent = msg.state + '...';
-            if (msg.state === 'thinking') setOrbState('thinking');
-          }
-          break;
-
-        case 'decision':
+          if (sessionMode === 'mic' && msg.state === 'thinking') setOrbState('thinking');
           break;
 
         case 'stream_text':
@@ -1447,9 +2145,8 @@
               streamingEl.classList.add('streaming');
             }
             streamingEl.textContent += msg.text;
-            document.getElementById('chat-messages').scrollTop = document.getElementById('chat-messages').scrollHeight;
+            document.getElementById('chat-messages').scrollTop = 999999;
           } else {
-            // In mic mode, accumulate for transcript display
             if (!streamingEl) {
               streamingEl = document.createElement('div');
               streamingEl.className = 'ct-msg assistant';
@@ -1464,18 +2161,9 @@
           queueAudio(msg.data, msg.index);
           break;
 
-        case 'stream_audio_fallback':
-          break;
-
         case 'stream_end':
-          if (streamingEl) {
-            streamingEl.classList.remove('streaming');
-            streamingEl = null;
-          }
-          if (sessionMode === 'mic' && audioQueue.length === 0 && !isPlayingAudio) {
-            setOrbState('idle');
-            document.getElementById('call-status').textContent = 'ready — speak anytime';
-          }
+          if (streamingEl) { streamingEl.classList.remove('streaming'); streamingEl = null; }
+          if (sessionMode === 'mic' && audioQueue.length === 0 && !isPlayingAudio) setOrbState('idle');
           break;
 
         case 'dashboard_update':
@@ -1483,47 +2171,70 @@
           break;
 
         case 'session_ended':
-          toast('Session saved');
+          toast('Session saved ✓');
           cleanup();
           showScreen('landing');
           break;
 
         case 'error':
-          toast(msg.text);
-          if (sessionMode === 'mic') {
-            setOrbState('idle');
-            document.getElementById('call-status').textContent = 'ready — speak anytime';
-          }
+          toast(msg.text, 'error');
+          if (sessionMode === 'mic') setOrbState('idle');
           break;
       }
     }
 
-    // ===== DASHBOARD =====
+    // ═══════════════════════════════════════════════════
+    //  DASHBOARD
+    // ═══════════════════════════════════════════════════
     function updateDash(d) {
       document.getElementById('dash-income').textContent = '₹' + fmt(d.total_income);
       document.getElementById('dash-expense').textContent = '₹' + fmt(d.total_expense);
 
       const rate = d.savings_rate || 0;
       document.getElementById('savings-label').textContent = rate + '%';
-      const circ = 213.6;
-      document.getElementById('savings-fill').style.strokeDashoffset = circ - (circ * Math.min(rate, 100) / 100);
+      const circ = 201.1;
+      document.getElementById('savings-fill').style.strokeDashoffset =
+        circ - (circ * Math.min(rate, 100) / 100);
 
+      // Category bars (animate on render)
       const cats = d.by_category || {};
       const maxCat = Math.max(...Object.values(cats), 1);
       const catsEl = document.getElementById('dash-cats');
       catsEl.innerHTML = '';
-      for (const [cat, amt] of Object.entries(cats)) {
-        const pct = (amt / maxCat * 100).toFixed(0);
-        catsEl.innerHTML += `<div class="dash-bar-item"><div class="dash-bar-name">${cat}</div><div class="dash-bar"><div class="dash-bar-fill" style="width:${pct}%"></div></div><div class="dash-bar-amt">₹${fmt(amt)}</div></div>`;
-      }
+      Object.entries(cats).forEach(([cat, amt]) => {
+        const pct = ((amt / maxCat) * 100).toFixed(0);
+        const row = document.createElement('div');
+        row.className = 'dash-bar-item';
+        row.innerHTML = `
+      <div class="dash-bar-name">${cat}</div>
+      <div class="dash-bar"><div class="dash-bar-fill" style="width:0%" data-pct="${pct}%"></div></div>
+      <div class="dash-bar-amt">₹${fmtShort(amt)}</div>
+    `;
+        catsEl.appendChild(row);
+      });
+      // Trigger bar animations after paint
+      requestAnimationFrame(() => {
+        catsEl.querySelectorAll('.dash-bar-fill').forEach(el => {
+          el.style.width = el.dataset.pct;
+        });
+      });
 
+      // Recent transactions
       const txEl = document.getElementById('dash-tx');
       txEl.innerHTML = '';
-      for (const tx of (d.recent_tx || []).slice(-6).reverse()) {
-        txEl.innerHTML += `<div class="tx-item"><span class="tx-cat">${tx.category}</span><span class="tx-amt">₹${Math.abs(tx.amount)}</span></div>`;
-      }
+      const recent = (d.recent_tx || []).slice(-6).reverse();
+      recent.forEach((tx, i) => {
+        const item = document.createElement('div');
+        item.className = 'tx-item';
+        item.style.animationDelay = (i * 40) + 'ms';
+        item.innerHTML = `
+      <span class="tx-cat">${tx.category}</span>
+      <span class="tx-date">${tx.date ? tx.date.slice(5) : ''}</span>
+      <span class="tx-amt">₹${Math.abs(tx.amount)}</span>
+    `;
+        txEl.appendChild(item);
+      });
 
-      // Show dashboard panel on first update
       document.getElementById('dash-panel').classList.add('open');
     }
 
@@ -1531,8 +2242,20 @@
       if (!n) return '0';
       return Number(n).toLocaleString('en-IN', { maximumFractionDigits: 0 });
     }
+    function fmtShort(n) {
+      if (n >= 100000) return (n / 100000).toFixed(1) + 'L';
+      if (n >= 1000) return (n / 1000).toFixed(1) + 'k';
+      return Math.round(n);
+    }
 
-    // Fetch dashboard on load (for returning users)
+    function arrayBufferToBase64(buffer) {
+      const bytes = new Uint8Array(buffer);
+      let binary = '';
+      for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+      return btoa(binary);
+    }
+
+    // Fetch dashboard for returning user on load
     window.addEventListener('load', () => {
       const u = localStorage.getItem('artha_user');
       if (u) {
