@@ -174,12 +174,12 @@ async def _handle_stream(messages: list, memory, ws: WebSocket, session_mode: st
                 idx = chunk_index
                 chunk_index += 1
                 if session_mode == "mic":
-                    task = asyncio.create_task(_tts_and_send(ws, sent, idx, user_id_ref, gen_id))
+                    task = asyncio.create_task(_tts_and_send(ws, sent, idx, user_id, gen_id))
                     tts_tasks.append(task)
 
     if sentence_buf.strip():
         if session_mode == "mic":
-            task = asyncio.create_task(_tts_and_send(ws, sentence_buf.strip(), chunk_index, user_id_ref, gen_id))
+            task = asyncio.create_task(_tts_and_send(ws, sentence_buf.strip(), chunk_index, user_id, gen_id))
             tts_tasks.append(task)
 
     if tts_tasks:
