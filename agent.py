@@ -218,17 +218,24 @@ def agent_turn(messages: list, memory: Memory, user_id: str) -> str:
     return "Itne saare tools use ho gaye — please try again."
 
 
-def sync_memory(memory: Memory, messages: list) -> Memory:
+def sync_memory(memory: Memory, messages: list) -> tuple[Memory, bool]:
+    """Extract and persist memory from a conversation turn.
+
+    Returns:
+        (memory, success) — success=False means the original memory is returned
+        unchanged because the LLM call failed or returned unparseable JSON.
+        Callers MUST check success if they care about data integrity.
+    """
     transcript = build_transcript(messages)
     if not transcript.strip():
-        return memory
+        return memory, True  # nothing to sync, not a failure
 
     prompt = [
         {
             "role": "system",
             "content": (
                 "Extract memory from this finance conversation.\n"
-                "Return ONLY valid JSON, no markdown.\n"
+                "Return ONLY valid JSON with no markdown, no explanation.\n"
                 '{"summary":"...","goals":[{"description":"...","status":"active"}],'
                 '"commitments":[{"title":"...","due_date":"YYYY-MM-DD"}],'
                 '"observed_patterns":[{"category":"...","observation":"..."}]}'
@@ -237,15 +244,38 @@ def sync_memory(memory: Memory, messages: list) -> Memory:
         {"role": "user", "content": transcript},
     ]
 
+    raw = call_llm_simple(prompt)
+    if not raw:
+        print("[Memory] sync failed: empty LLM response")
+        return memory, False
+
+    # Multi-stage JSON extraction:
+    # 1. Strip markdown fences  2. Try direct parse  3. Extract first {...} block
+    cleaned = re.sub(r"```[\w]*\n?|```", "", raw).strip()
+    data = None
+
     try:
-        result = re.sub(r"```[\w]*\n?|```", "", call_llm_simple(prompt)).strip()
-        data = json.loads(result)
+        data = json.loads(cleaned)
+    except json.JSONDecodeError:
+        # LLM added prose around the JSON — find the first {...} block
+        m = re.search(r'\{[\s\S]+\}', cleaned)
+        if m:
+            try:
+                data = json.loads(m.group())
+            except json.JSONDecodeError:
+                pass
+
+    if data is None:
+        print(f"[Memory] sync failed: could not parse JSON from response: {raw[:200]!r}")
+        return memory, False
+
+    try:
         memory.summary = data.get("summary", memory.summary)
         memory.goals = data.get("goals", memory.goals)
         memory.commitments = data.get("commitments", memory.commitments)
         memory.observed_patterns = data.get("observed_patterns", memory.observed_patterns)
         print("[Memory] synced")
+        return memory, True
     except Exception as e:
-        print(f"[Memory] sync failed: {e}")
-
-    return memory
+        print(f"[Memory] sync failed: unexpected error applying data: {e}")
+        return memory, False

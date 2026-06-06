@@ -46,6 +46,7 @@ def save_ledger(user_id: str, data: list) -> bool:
 
 def add_transaction(user_id: str, amount: float, category: str, note: str = "") -> bool:
     with _get_lock(user_id):
+        # load INSIDE the lock so read-append-write is atomic
         ledger = load_ledger(user_id)
         ledger.append({
             "date": date.today().isoformat(),

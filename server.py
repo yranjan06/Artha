@@ -33,6 +33,21 @@ static_dir = Path(__file__).parent / "static"
 app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
 Path("memory").mkdir(exist_ok=True)
 
+# Per-user session store — prevents split-brain when a user opens two tabs.
+# Maps user_id -> {"messages": list, "lock": asyncio.Lock, "active": bool}
+_sessions: dict[str, dict] = {}
+
+
+def _get_session(user_id: str) -> dict:
+    if user_id not in _sessions:
+        _sessions[user_id] = {
+            "messages": [],
+            "lock": asyncio.Lock(),
+            "active": False,
+        }
+    return _sessions[user_id]
+
+
 _SENTENCE_RE = re.compile(r'(?<=[.!?।])(\s+)')
 
 
@@ -93,14 +108,17 @@ async def _handle_transcript(transcript: str, messages: list, memory, user_id: s
 
         # Memory sync after every finance turn
         try:
-            updated = await loop.run_in_executor(None, sync_memory, memory, messages)
-            memory.summary = updated.summary
-            memory.goals = updated.goals
-            memory.commitments = updated.commitments
-            memory.observed_patterns = updated.observed_patterns
-            save_memory(user_id, memory)
+            updated, ok = await loop.run_in_executor(None, sync_memory, memory, messages)
+            if ok:
+                memory.summary = updated.summary
+                memory.goals = updated.goals
+                memory.commitments = updated.commitments
+                memory.observed_patterns = updated.observed_patterns
+                save_memory(user_id, memory)
+            else:
+                print(f"[Memory] per-turn sync failed for {user_id} — memory not updated")
         except Exception as e:
-            print(f"[Memory] per-turn sync failed: {e}")
+            print(f"[Memory] per-turn sync error: {e}")
 
         print(f"[WS] reply: {reply[:120]!r}")
         messages.append({"role": "assistant", "content": reply})
@@ -234,8 +252,22 @@ async def ws_endpoint(websocket: WebSocket, user_id: str):
     await websocket.accept()
     print(f"[WS] session start: {user_id}")
 
+    session = _get_session(user_id)
+
+    # Reject duplicate concurrent connections for the same user
+    if session["active"]:
+        await websocket.send_text(json.dumps({
+            "type": "error",
+            "text": "Another session is already active. Close the other tab first.",
+        }))
+        await websocket.close()
+        return
+
+    session["active"] = True
+    session["messages"] = []  # fresh conversation per session
+    messages = session["messages"]
+
     memory = load_memory(user_id)
-    messages = []
     session_mode = None  # locked after first message
     audio_buffer = bytearray()
     client_sample_rate = 16000
@@ -261,7 +293,12 @@ async def ws_endpoint(websocket: WebSocket, user_id: str):
 
             if msg.get("type") == "end_session":
                 await websocket.send_text(json.dumps({"type": "status", "state": "saving"}))
-                memory = sync_memory(memory, messages)
+                updated, ok = sync_memory(memory, messages)
+                if ok:
+                    memory.summary = updated.summary
+                    memory.goals = updated.goals
+                    memory.commitments = updated.commitments
+                    memory.observed_patterns = updated.observed_patterns
                 save_memory(user_id, memory)
                 await websocket.send_text(json.dumps({"type": "session_ended", "user_id": user_id}))
                 break
@@ -329,8 +366,15 @@ async def ws_endpoint(websocket: WebSocket, user_id: str):
     except WebSocketDisconnect:
         print(f"[WS] disconnect: {user_id}")
         if messages:
-            memory = sync_memory(memory, messages)
-            save_memory(user_id, memory)
+            updated, ok = sync_memory(memory, messages)
+            if ok:
+                memory.summary = updated.summary
+                memory.goals = updated.goals
+                memory.commitments = updated.commitments
+                memory.observed_patterns = updated.observed_patterns
+                save_memory(user_id, memory)
+            else:
+                print(f"[Memory] disconnect sync failed for {user_id} — last turn not saved")
 
     except Exception as e:
         import traceback
@@ -341,6 +385,7 @@ async def ws_endpoint(websocket: WebSocket, user_id: str):
             pass
 
     finally:
+        session["active"] = False
         print(f"[WS] session end: {user_id}")
 
 
