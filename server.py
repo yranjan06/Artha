@@ -44,6 +44,7 @@ def _get_session(user_id: str) -> dict:
             "messages": [],
             "lock": asyncio.Lock(),
             "active": False,
+            "gen": 0,  # incremented on each barge-in to cancel stale replies
         }
     return _sessions[user_id]
 
@@ -91,7 +92,10 @@ async def _push_dashboard(ws: WebSocket, user_id: str):
         print(f"[Dashboard] push failed: {e}")
 
 
-async def _handle_transcript(transcript: str, messages: list, memory, user_id: str, ws: WebSocket, session_mode: str):
+async def _handle_transcript(
+    transcript: str, messages: list, memory, user_id: str,
+    ws: WebSocket, session_mode: str, gen_id: int = 0
+):
     print(f"[WS] transcript: {transcript!r}")
     await ws.send_text(json.dumps({"type": "transcript", "text": transcript}))
     messages.append({"role": "user", "content": transcript})
@@ -101,6 +105,11 @@ async def _handle_transcript(transcript: str, messages: list, memory, user_id: s
     intent = await loop.run_in_executor(None, classify, transcript)
     print(f"[WS] intent: {intent}")
     await ws.send_text(json.dumps({"type": "decision", "intent": intent}))
+
+    # Check if user barged-in while we were classifying
+    if _get_session(user_id)["gen"] != gen_id:
+        print(f"[WS] reply cancelled by barge-in (classify stage) for {user_id}")
+        return
 
     if intent == "finance":
         reply = await loop.run_in_executor(None, agent_turn, messages, memory, user_id)
@@ -120,14 +129,19 @@ async def _handle_transcript(transcript: str, messages: list, memory, user_id: s
         except Exception as e:
             print(f"[Memory] per-turn sync error: {e}")
 
+        # Final cancellation check before sending audio — covers mid-tool-call barge-in
+        if _get_session(user_id)["gen"] != gen_id:
+            print(f"[WS] reply cancelled by barge-in (post-tool) for {user_id}")
+            return
+
         print(f"[WS] reply: {reply[:120]!r}")
         messages.append({"role": "assistant", "content": reply})
         await _send_audio(ws, reply, session_mode)
     else:
-        await _handle_stream(messages, memory, ws, session_mode)
+        await _handle_stream(messages, memory, ws, session_mode, gen_id, user_id)
 
 
-async def _handle_stream(messages: list, memory, ws: WebSocket, session_mode: str):
+async def _handle_stream(messages: list, memory, ws: WebSocket, session_mode: str, gen_id: int = 0, user_id: str = ""):
     llm_messages = [
         {"role": "system", "content": build_system_prompt(memory)},
         *messages,
@@ -142,6 +156,11 @@ async def _handle_stream(messages: list, memory, ws: WebSocket, session_mode: st
         full_reply += token
         sentence_buf += token
 
+        # Drop stream mid-way if barged-in
+        if user_id and _get_session(user_id)["gen"] != gen_id:
+            print(f"[WS] stream cancelled by barge-in for {user_id}")
+            return
+
         await ws.send_text(json.dumps({"type": "stream_text", "text": token}))
 
         if _SENTENCE_RE.search(sentence_buf):
@@ -155,12 +174,12 @@ async def _handle_stream(messages: list, memory, ws: WebSocket, session_mode: st
                 idx = chunk_index
                 chunk_index += 1
                 if session_mode == "mic":
-                    task = asyncio.create_task(_tts_and_send(ws, sent, idx))
+                    task = asyncio.create_task(_tts_and_send(ws, sent, idx, user_id_ref, gen_id))
                     tts_tasks.append(task)
 
     if sentence_buf.strip():
         if session_mode == "mic":
-            task = asyncio.create_task(_tts_and_send(ws, sentence_buf.strip(), chunk_index))
+            task = asyncio.create_task(_tts_and_send(ws, sentence_buf.strip(), chunk_index, user_id_ref, gen_id))
             tts_tasks.append(task)
 
     if tts_tasks:
@@ -171,7 +190,11 @@ async def _handle_stream(messages: list, memory, ws: WebSocket, session_mode: st
     messages.append({"role": "assistant", "content": full_reply})
 
 
-async def _tts_and_send(ws: WebSocket, text: str, index: int):
+async def _tts_and_send(ws: WebSocket, text: str, index: int, user_id: str = "", gen_id: int = 0):
+    # Discard this chunk if the user has already barged in
+    if user_id and _get_session(user_id)["gen"] != gen_id:
+        print(f"[TTS-stream] chunk {index} cancelled by barge-in")
+        return
     try:
         loop = asyncio.get_event_loop()
         audio_b64 = await loop.run_in_executor(None, speak_b64, text)
@@ -303,6 +326,13 @@ async def ws_endpoint(websocket: WebSocket, user_id: str):
                 await websocket.send_text(json.dumps({"type": "session_ended", "user_id": user_id}))
                 break
 
+            # === Barge-in: user interrupted bot mid-speech ===
+            if msg.get("type") == "barge_in":
+                session["gen"] += 1
+                print(f"[WS] barge-in from {user_id} — gen now {session['gen']}, resetting audio buffer")
+                audio_buffer = bytearray()  # discard partial audio from before interrupt
+                continue
+
             # === Mode enforcement ===
             if msg.get("type") == "text":
                 if session_mode == "mic":
@@ -361,7 +391,13 @@ async def ws_endpoint(websocket: WebSocket, user_id: str):
                     }))
                     continue
 
-                await _handle_transcript(transcript, messages, memory, user_id, websocket, session_mode or "mic")
+                # Snapshot gen at time of transcription — used to detect barge-ins
+                # that arrive while agent_turn / TTS is running
+                current_gen = session["gen"]
+                await _handle_transcript(
+                    transcript, messages, memory, user_id,
+                    websocket, session_mode or "mic", current_gen
+                )
 
     except WebSocketDisconnect:
         print(f"[WS] disconnect: {user_id}")

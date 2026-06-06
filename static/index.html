@@ -302,10 +302,18 @@ let isRecording = false;
 let silenceTimer = null;
 let audioQueue = [];
 let isPlayingAudio = false;
+let currentAudio = null;  // track playing Audio object so we can pause it on barge-in
 let streamingEl = null;
-let micMuted = false; // mute mic during TTS playback to prevent feedback
 
-const SILENCE_THRESHOLD = 0.008;
+// Barge-in thresholds
+const SILENCE_THRESHOLD = 0.008;       // normal VAD threshold
+const BARGE_IN_THRESHOLD_MIN = 0.015;  // floor: always at least this high during TTS
+let dynamicBargeInThreshold = 0.022;   // updated after sampling TTS bleed-through
+let baselineSamples = [];              // RMS samples collected during TTS playback
+const BASELINE_SAMPLE_COUNT = 5;       // ~1.3s at 4096/16kHz per callback
+
+let bargedIn = false;  // true after a barge-in fires, suppresses duplicate stream_audio_end
+
 const SILENCE_DURATION = 700;
 const VOL_BAR_COUNT = 12;
 
@@ -382,7 +390,7 @@ function cleanup() {
   stopMic();
   audioQueue = [];
   isPlayingAudio = false;
-  micMuted = false;
+  currentAudio = null;
   streamingEl = null;
   if (ws) { try { ws.close(); } catch(e){} ws = null; }
   document.getElementById('call-transcript').innerHTML = '';
@@ -401,8 +409,6 @@ async function startMic() {
     let chunks = [];
 
     scriptNode.onaudioprocess = e => {
-      // Skip processing while TTS audio is playing to prevent feedback loop
-      if (micMuted) return;
       const data = e.inputBuffer.getChannelData(0);
       let sum = 0;
       for (let i = 0; i < data.length; i++) sum += data[i] * data[i];
@@ -410,10 +416,32 @@ async function startMic() {
 
       updateVolBars(rms);
 
-      if (rms > SILENCE_THRESHOLD) {
+      // During TTS: collect RMS samples to build a dynamic baseline of TTS bleed-through.
+      // Once we have enough samples, threshold = max(mean * 2.5, floor).
+      // This adapts: headphones have near-zero bleed, laptop speakers have more.
+      if (isPlayingAudio) {
+        if (baselineSamples.length < BASELINE_SAMPLE_COUNT) {
+          baselineSamples.push(rms);
+          if (baselineSamples.length === BASELINE_SAMPLE_COUNT) {
+            const mean = baselineSamples.reduce((a, b) => a + b, 0) / BASELINE_SAMPLE_COUNT;
+            dynamicBargeInThreshold = Math.max(mean * 2.5, BARGE_IN_THRESHOLD_MIN);
+            console.log(`[VAD] dynamic barge-in threshold: ${dynamicBargeInThreshold.toFixed(4)} (bleed mean: ${mean.toFixed(4)})`);
+          }
+        }
+      }
+
+      // While TTS is playing, only fire on a much louder barge-in signal.
+      const threshold = isPlayingAudio ? dynamicBargeInThreshold : SILENCE_THRESHOLD;
+
+      if (rms > threshold) {
+        if (isPlayingAudio) {
+          // User interrupted — stop TTS immediately
+          bargeIn();
+        }
+
         if (!speaking) {
           speaking = true;
-          chunks = [];
+          bargedIn = false;  // reset for this new recording window
           ws.send(JSON.stringify({ type: 'stream_audio_start', sampleRate: audioCtx.sampleRate }));
           setOrbState('listening');
           document.getElementById('call-status').textContent = 'listening...';
@@ -434,9 +462,12 @@ async function startMic() {
         if (!silenceTimer) {
           silenceTimer = setTimeout(() => {
             speaking = false;
-            ws.send(JSON.stringify({ type: 'stream_audio_end' }));
-            setOrbState('thinking');
-            document.getElementById('call-status').textContent = 'thinking...';
+            // Don't send stream_audio_end if this window was already handled by a barge-in
+            if (!bargedIn) {
+              ws.send(JSON.stringify({ type: 'stream_audio_end' }));
+              setOrbState('thinking');
+              document.getElementById('call-status').textContent = 'thinking...';
+            }
             silenceTimer = null;
           }, SILENCE_DURATION);
         }
@@ -449,9 +480,32 @@ async function startMic() {
     setOrbState('idle');
     document.getElementById('call-status').textContent = 'ready — speak anytime';
   } catch (err) {
-    toast('Mic access denied');
-    console.error(err);
+    toast('Mic access denied — check browser permissions');
+    console.error('[Mic]', err);
   }
+}
+
+// Barge-in: user spoke while bot was talking — stop TTS immediately
+function bargeIn() {
+  if (!isPlayingAudio) return;
+  // Pause currently playing audio
+  if (currentAudio) {
+    try { currentAudio.pause(); } catch(e) {}
+    currentAudio = null;
+  }
+  // Clear pending queue
+  audioQueue = [];
+  isPlayingAudio = false;
+  bargedIn = true;  // suppress any pending silence timer stream_audio_end
+  // Reset dynamic baseline for next TTS
+  baselineSamples = [];
+  dynamicBargeInThreshold = 0.022;
+  // Tell server so it can cancel any in-flight TTS generation
+  if (ws && ws.readyState === WebSocket.OPEN) {
+    ws.send(JSON.stringify({ type: 'barge_in' }));
+  }
+  setOrbState('listening');
+  document.getElementById('call-status').textContent = 'listening...';
 }
 
 function stopMic() {
@@ -526,16 +580,15 @@ function queueAudio(b64, index) {
 
 function playNext() {
   if (isPlayingAudio || audioQueue.length === 0) {
-    // All audio done — unmute mic and reset orb
+    // Queue drained — orb back to idle, reset baseline for next TTS session
     if (!isPlayingAudio && audioQueue.length === 0 && sessionMode === 'mic') {
-      micMuted = false;
+      baselineSamples = [];  // next TTS will re-sample
       setOrbState('idle');
       document.getElementById('call-status').textContent = 'ready — speak anytime';
     }
     return;
   }
   isPlayingAudio = true;
-  micMuted = true; // Mute mic while playing to prevent feedback
   const item = audioQueue.shift();
 
   const raw = atob(item.b64);
@@ -545,16 +598,20 @@ function playNext() {
   const blob = new Blob([arr], { type: 'audio/wav' });
   const url = URL.createObjectURL(blob);
   const audio = new Audio(url);
+  currentAudio = audio;
+
   audio.onended = () => {
     URL.revokeObjectURL(url);
+    currentAudio = null;
     isPlayingAudio = false;
     playNext();
   };
   audio.onerror = () => {
+    currentAudio = null;
     isPlayingAudio = false;
     playNext();
   };
-  audio.play().catch(() => { isPlayingAudio = false; playNext(); });
+  audio.play().catch(() => { currentAudio = null; isPlayingAudio = false; playNext(); });
 
   if (sessionMode === 'mic') setOrbState('speaking');
 }

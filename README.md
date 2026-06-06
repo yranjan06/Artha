@@ -41,10 +41,12 @@ python server.py
 
 User picks a username on first visit (stored in localStorage). Then chooses a mode:
 
-- **Call mode** — real-time voice conversation with VAD-based silence detection
+- **Call mode** — real-time voice conversation with VAD-based silence detection and barge-in support
 - **Text mode** — chat interface with live dashboard sidebar
 
 Mode is locked for the entire session. No switching mid-session. Press "End Call" to save memory and return to the landing screen.
+
+Per-user session state is tracked server-side — opening two tabs for the same username shows an error on the second tab rather than splitting the conversation context.
 
 ### Audio pipeline
 
@@ -60,6 +62,18 @@ Mic → ScriptProcessorNode → RMS silence detect
        ↓
     Groq Whisper STT → transcript
 ```
+
+### Barge-in detection
+
+While the assistant is speaking, the mic stays active at a higher RMS threshold. If the user speaks above that threshold, playback stops immediately and the user's speech is captured:
+
+```
+TTS playing → mic samples bleed-through RMS for ~1.3s → dynamic threshold = max(mean × 2.5, 0.015)
+User speaks above threshold → currentAudio.pause() → queue cleared → barge_in sent to server
+Server increments generation counter → any in-flight agent_turn or TTS chunks self-discard
+```
+
+**Known limitation:** dynamic threshold adapts per session but resets on each TTS chunk. Works well for headphones and laptop speakers; very loud external speakers may need manual tuning of `BARGE_IN_THRESHOLD_MIN` in `index.html`.
 
 ### Intent classifier (3-tier)
 
@@ -97,6 +111,8 @@ After every finance tool call, before the next user turn:
 3. Sync memory (goals, patterns, commitments)
 4. Save memory to disk
 
+Memory sync returns `(Memory, bool)` — if LLM returns unparseable JSON, the old memory is kept and the failure is logged explicitly (not silently dropped).
+
 ### Audio playback
 
 TTS chunks arrive out of order (parallel generation). Frontend queues them by `index` and plays sequentially — no garbled overlapping audio.
@@ -107,11 +123,11 @@ TTS chunks arrive out of order (parallel generation). Frontend queues them by `i
 
 ```
 artha/
-├── server.py          FastAPI + WebSocket — mode lock, session management
+├── server.py          FastAPI + WebSocket — mode lock, session management, barge-in handling
 ├── agent.py           Agentic loop with circuit breaker
 ├── intent.py          3-tier classifier
 ├── memory.py          Per-user JSON memory
-├── ledger.py          Per-user transaction log with write locks
+├── ledger.py          Per-user transaction log with write locks (atomic read-append-write)
 ├── stt.py             Groq Whisper large-v3
 ├── tts.py             Sarvam Bulbul v3 (deduplicated)
 ├── llm.py             Single client for chat + audio
@@ -124,7 +140,9 @@ artha/
 ├── static/
 │   └── index.html     Full UI — landing, call mode, text chat, dashboard
 ├── tests/             Unit tests (finance, intent, memory)
-├── evals/             Intent classifier eval set
+├── evals/
+│   ├── intent_eval.json   14 labelled intent test cases
+│   └── run_eval.py        Intent classifier eval runner
 └── .github/workflows/ CI
 ```
 
@@ -138,6 +156,7 @@ artha/
 | LLM | Groq Llama 3.3 70B Versatile |
 | TTS | Sarvam Bulbul v3 (hi-IN / en-IN auto-detect) |
 | VAD | Browser-side RMS analysis via ScriptProcessorNode |
+| Barge-in | Dynamic RMS baseline sampling — adapts to speaker bleed-through per session |
 | Backend | FastAPI + WebSocket |
 | Frontend | Vanilla JS, DM Sans, dark theme |
 | Memory | Per-user JSON with write locks |
@@ -155,4 +174,11 @@ docker-compose up --build
 
 ```bash
 GROQ_API_KEY=dummy SARVAM_API_KEY=dummy pytest tests/ -v
+```
+
+## Eval
+
+```bash
+# Run intent classifier eval (no API key needed for tier 0/1, uses LLM for tier 2)
+python evals/run_eval.py
 ```
