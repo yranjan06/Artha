@@ -20,24 +20,29 @@
     }
 
     :root {
-      --bg: #080a07;
-      --bg2: #0f1210;
-      --bg3: #171c16;
-      --bg4: #1e2620;
-      --bg5: #252e26;
-      --lime: #c4f135;
-      --lime2: #9bc428;
-      --lime3: #6e9118;
-      --lime-dim: rgba(196, 241, 53, .08);
-      --lime-glow: rgba(196, 241, 53, .15);
-      --text: #e6ead4;
-      --text2: #96a082;
-      --text3: #586048;
-      --red: #f25c5c;
-      --amber: #f0a832;
-      --radius: 16px;
-      --radius-sm: 10px;
-      --font: 'Syne', system-ui, sans-serif;
+      --bg:        #0f0f0f;
+      --bg2:       #141410;
+      --bg3:       #1a1a14;
+      --bg4:       #222214;
+      --bg5:       #2a2208;
+      
+      --accent:    #d4af37;
+      --accent2:   #e8cc6a;
+      --positive:  #4ecb71;
+      --negative:  #ff5252;
+      --warning:   #ff8c42;
+      
+      --text:      #f5f0e0;
+      --text2:     #e8e0cc;
+      --text3:     #8a7a50;
+      
+      --border:    rgba(212,175,55,.12);
+      --border2:   rgba(212,175,55,.25);
+      
+      --radius:    12px;
+      --radius-sm: 6px;
+      --font:      'DM Mono', 'Courier New', monospace;
+      
       --mono: 'DM Mono', monospace;
       --ease-spring: cubic-bezier(.34, 1.56, .64, 1);
       --ease-out: cubic-bezier(.22, 1, .36, 1);
@@ -103,7 +108,7 @@
     .ambient-dot {
       position: absolute;
       border-radius: 50%;
-      background: var(--lime);
+      background: var(--accent);
       opacity: 0;
       filter: blur(80px);
       transition: opacity 1.2s var(--ease-out);
@@ -138,7 +143,7 @@
       font-weight: 700;
       letter-spacing: -.05em;
       line-height: 1;
-      color: var(--lime);
+      color: var(--accent);
       margin-bottom: 8px;
       position: relative;
     }
@@ -150,7 +155,7 @@
       left: 0;
       width: 100%;
       height: 2px;
-      background: linear-gradient(90deg, var(--lime), transparent);
+      background: linear-gradient(90deg, var(--accent), transparent);
       transform: scaleX(0);
       transform-origin: left;
       animation: underline-in 0.6s var(--ease-out) 0.4s forwards;
@@ -194,9 +199,9 @@
     }
 
     .landing-input:focus {
-      border-color: var(--lime3);
+      border-color: var(--accent);
       background: var(--bg4);
-      box-shadow: 0 0 0 4px var(--lime-dim);
+      box-shadow: 0 0 0 4px var(--border);
     }
 
     .landing-input::placeholder {
@@ -244,13 +249,13 @@
       content: '';
       position: absolute;
       inset: 0;
-      background: radial-gradient(circle at center, var(--lime-glow), transparent 70%);
+      background: radial-gradient(circle at center, var(--border2), transparent 70%);
       opacity: 0;
       transition: opacity .3s;
     }
 
     .mode-btn:hover {
-      border-color: var(--lime3);
+      border-color: var(--accent);
       background: var(--bg4);
       transform: translateY(-2px);
       box-shadow: 0 8px 24px rgba(0, 0, 0, .4);
@@ -267,7 +272,7 @@
     .mode-btn svg {
       width: 26px;
       height: 26px;
-      stroke: var(--lime);
+      stroke: var(--accent);
       fill: none;
       stroke-width: 1.5;
       stroke-linecap: round;
@@ -280,7 +285,7 @@
     }
 
     .landing-err {
-      color: var(--red);
+      color: var(--negative);
       font-size: 12px;
       font-family: var(--mono);
       letter-spacing: .04em;
@@ -348,8 +353,8 @@
     }
 
     .status-dot.active {
-      background: var(--lime);
-      box-shadow: 0 0 6px var(--lime2);
+      background: var(--accent);
+      box-shadow: 0 0 6px var(--accent2);
     }
 
     .status-dot.thinking {
@@ -359,8 +364,8 @@
     }
 
     .status-dot.speaking {
-      background: var(--lime);
-      box-shadow: 0 0 10px var(--lime);
+      background: var(--accent);
+      box-shadow: 0 0 10px var(--accent);
       animation: pulse-dot .6s ease-in-out infinite;
     }
 
@@ -399,14 +404,14 @@
     }
 
     .face-orbit.listening {
-      border-color: rgba(196, 241, 53, .2);
-      box-shadow: 0 0 0 8px rgba(196, 241, 53, .04), 0 0 40px rgba(196, 241, 53, .08);
+      border-color: rgba(212, 175, 55, .2);
+      box-shadow: 0 0 0 8px rgba(212, 175, 55, .04), 0 0 40px rgba(212, 175, 55, .08);
       animation: orbit-spin 6s linear infinite;
     }
 
     .face-orbit.speaking {
-      border-color: rgba(196, 241, 53, .15);
-      box-shadow: 0 0 0 4px rgba(196, 241, 53, .06), 0 0 30px rgba(196, 241, 53, .1);
+      border-color: rgba(212, 175, 55, .15);
+      box-shadow: 0 0 0 4px rgba(212, 175, 55, .06), 0 0 30px rgba(212, 175, 55, .1);
       animation: orbit-pulse 1.2s ease-in-out infinite;
     }
 
@@ -436,7 +441,7 @@
       inset: 0;
       margin: auto;
       border-radius: 50%;
-      border: 1px solid var(--lime);
+      border: 1px solid var(--accent);
       opacity: 0;
       pointer-events: none;
     }
@@ -504,7 +509,7 @@
     .wave-bar {
       height: 3px;
       border-radius: 2px;
-      background: var(--lime);
+      background: var(--accent);
     }
 
     .wave-side.left .wave-bar {
@@ -629,7 +634,7 @@
     }
 
     .eye.speaking {
-      box-shadow: 0 0 20px rgba(196, 241, 53, .25);
+      box-shadow: 0 0 20px rgba(212, 175, 55, .25);
     }
 
     .iris {
@@ -661,12 +666,12 @@
       position: absolute;
       width: 7px;
       height: 7px;
-      background: var(--lime);
+      background: var(--accent);
       border-radius: 50%;
       bottom: 9px;
       right: 9px;
       opacity: .95;
-      box-shadow: 0 0 4px var(--lime);
+      box-shadow: 0 0 4px var(--accent);
     }
 
     .lid {
@@ -764,7 +769,7 @@
 
     .vol-bar {
       width: 3px;
-      background: var(--lime);
+      background: var(--accent);
       border-radius: 2px;
       transition: height .07s, opacity .07s;
       opacity: .35;
@@ -851,7 +856,7 @@
     .end-call-btn svg {
       width: 22px;
       height: 22px;
-      stroke: var(--red);
+      stroke: var(--negative);
       fill: none;
       stroke-width: 2;
       stroke-linecap: round;
@@ -905,7 +910,7 @@
     .chat-title {
       font-size: 20px;
       font-weight: 700;
-      color: var(--lime);
+      color: var(--accent);
       letter-spacing: -.03em;
     }
 
@@ -956,8 +961,8 @@
     }
 
     .chat-end-btn:hover {
-      border-color: var(--red);
-      color: var(--red);
+      border-color: var(--negative);
+      color: var(--negative);
     }
 
     .chat-body {
@@ -992,7 +997,7 @@
       border-radius: 24px;
       font-size: 15px;
       font-weight: 600;
-      font-family: 'Quicksand', 'Nunito', var(--font);
+      font-family: var(--font);
       line-height: 1.6;
       opacity: 0;
       transform: translateY(8px);
@@ -1004,20 +1009,20 @@
 
     .msg.user {
       align-self: flex-end;
-      background: linear-gradient(135deg, var(--lime), #c4f135);
+      background: linear-gradient(135deg, var(--accent), #e8cc6a);
       color: var(--bg);
       border-bottom-right-radius: 6px;
       font-weight: 800;
-      box-shadow: 0 6px 20px rgba(196, 241, 53, 0.25);
+      box-shadow: 0 6px 20px rgba(212, 175, 55, 0.25);
     }
 
     .msg.assistant {
       align-self: flex-start;
-      background: rgba(196, 241, 53, 0.05);
+      background: rgba(212, 175, 55, 0.05);
       color: var(--text);
       border-bottom-left-radius: 6px;
-      border: 1px solid rgba(196, 241, 53, 0.2);
-      box-shadow: inset 0 0 10px rgba(196, 241, 53, 0.02);
+      border: 1px solid rgba(212, 175, 55, 0.2);
+      box-shadow: inset 0 0 10px rgba(212, 175, 55, 0.02);
     }
 
     .msg.system {
@@ -1037,7 +1042,7 @@
     .msg.streaming::after {
       content: '▍';
       animation: cursor-blink 1s steps(1) infinite;
-      color: var(--lime);
+      color: var(--accent);
       font-size: 13px;
     }
 
@@ -1067,22 +1072,22 @@
 
     .chat-input {
       flex: 1;
-      background: rgba(196, 241, 53, 0.03);
-      border: 1px solid rgba(196, 241, 53, 0.2);
+      background: rgba(212, 175, 55, 0.03);
+      border: 1px solid rgba(212, 175, 55, 0.2);
       border-radius: 24px;
       padding: 16px 24px;
       font-size: 15px;
       font-weight: 600;
       color: var(--text);
-      font-family: 'Quicksand', 'Nunito', var(--font);
+      font-family: var(--font);
       outline: none;
       transition: border-color .2s, box-shadow .2s, transform .2s;
       letter-spacing: .02em;
     }
 
     .chat-input:focus {
-      border-color: var(--lime);
-      box-shadow: 0 0 20px rgba(196, 241, 53, 0.15);
+      border-color: var(--accent);
+      box-shadow: 0 0 20px rgba(212, 175, 55, 0.15);
       transform: translateY(-2px);
     }
 
@@ -1091,7 +1096,7 @@
     }
 
     .chat-send {
-      background: var(--lime);
+      background: var(--accent);
       border: none;
       border-radius: 24px;
       padding: 0 24px;
@@ -1101,13 +1106,13 @@
       align-items: center;
       justify-content: center;
       min-width: 64px;
-      box-shadow: 0 4px 12px rgba(196, 241, 53, 0.2);
+      box-shadow: 0 4px 12px rgba(212, 175, 55, 0.2);
     }
 
     .chat-send:hover {
-      background: #c4f135;
+      background: #e8cc6a;
       transform: translateY(-2px) scale(1.05);
-      box-shadow: 0 6px 16px rgba(196, 241, 53, 0.3);
+      box-shadow: 0 6px 16px rgba(212, 175, 55, 0.3);
     }
 
     .chat-send:active {
@@ -1170,27 +1175,27 @@
     }
 
     .dash-section {
-      background: rgba(196, 241, 53, 0.04);
-      border: 1px solid rgba(196, 241, 53, 0.15);
+      background: rgba(212, 175, 55, 0.04);
+      border: 1px solid rgba(212, 175, 55, 0.15);
       border-radius: 24px;
       padding: 24px;
       margin-bottom: 20px;
       position: relative;
       overflow: hidden;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2), inset 0 0 20px rgba(196, 241, 53, 0.02);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2), inset 0 0 20px rgba(212, 175, 55, 0.02);
       transition: transform .3s var(--ease-spring), box-shadow .3s, border-color .3s;
     }
 
     .dash-section:hover {
       transform: translateY(-4px) scale(1.02);
-      box-shadow: 0 12px 30px rgba(196, 241, 53, 0.15), inset 0 0 30px rgba(196, 241, 53, 0.05);
-      border-color: rgba(196, 241, 53, 0.4);
+      box-shadow: 0 12px 30px rgba(212, 175, 55, 0.15), inset 0 0 30px rgba(212, 175, 55, 0.05);
+      border-color: rgba(212, 175, 55, 0.4);
     }
 
     .dash-label {
       font-size: 11px;
       font-weight: 700;
-      font-family: 'Quicksand', 'Nunito', var(--font);
+      font-family: var(--font);
       color: var(--text2);
       letter-spacing: .15em;
       text-transform: uppercase;
@@ -1200,18 +1205,18 @@
     .dash-value {
       font-size: 36px;
       font-weight: 900;
-      font-family: 'Quicksand', 'Nunito', var(--font);
-      color: var(--lime);
+      font-family: var(--font);
+      color: var(--accent);
       letter-spacing: -.05em;
       line-height: 1;
-      text-shadow: 0 0 24px rgba(196, 241, 53, 0.4);
+      text-shadow: 0 0 24px rgba(212, 175, 55, 0.4);
     }
 
     .dash-sub {
       font-size: 13px;
       font-weight: 600;
       color: var(--text3);
-      font-family: 'Quicksand', 'Nunito', var(--font);
+      font-family: var(--font);
       margin-top: 6px;
     }
 
@@ -1237,8 +1242,8 @@
     }
 
     .savings-ring .fill {
-      stroke: var(--lime);
-      filter: drop-shadow(0 0 8px rgba(196, 241, 53, 0.6));
+      stroke: var(--accent);
+      filter: drop-shadow(0 0 8px rgba(212, 175, 55, 0.6));
       transition: stroke-dashoffset .9s var(--ease-out);
     }
 
@@ -1246,9 +1251,9 @@
       text-align: center;
       font-size: 14px;
       font-weight: 800;
-      font-family: 'Quicksand', 'Nunito', var(--font);
-      color: var(--lime);
-      text-shadow: 0 0 12px rgba(196, 241, 53, 0.3);
+      font-family: var(--font);
+      color: var(--accent);
+      text-shadow: 0 0 12px rgba(212, 175, 55, 0.3);
     }
 
     /* Category bars */
@@ -1273,7 +1278,7 @@
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
-      font-family: 'Quicksand', 'Nunito', var(--font);
+      font-family: var(--font);
     }
 
     .dash-bar {
@@ -1287,18 +1292,18 @@
 
     .dash-bar-fill {
       height: 100%;
-      background: linear-gradient(90deg, var(--lime-dim), var(--lime));
+      background: linear-gradient(90deg, var(--border), var(--accent));
       border-radius: 4px;
       width: 0;
-      box-shadow: 0 0 10px rgba(196, 241, 53, 0.5);
+      box-shadow: 0 0 10px rgba(212, 175, 55, 0.5);
       transition: width .8s var(--ease-out);
     }
 
     .dash-bar-amt {
       font-size: 11px;
       font-weight: 700;
-      font-family: 'Quicksand', 'Nunito', var(--font);
-      color: var(--lime);
+      font-family: var(--font);
+      color: var(--accent);
       width: 48px;
       text-align: right;
     }
@@ -1318,15 +1323,15 @@
       padding: 12px 14px;
       margin: 4px 0;
       border-radius: 12px;
-      background: rgba(196, 241, 53, 0.06);
-      border: 1px solid rgba(196, 241, 53, 0.1);
+      background: rgba(212, 175, 55, 0.06);
+      border: 1px solid rgba(212, 175, 55, 0.1);
       opacity: 0;
       transition: transform .2s, background .2s;
       animation: tx-in .25s var(--ease-out) forwards;
     }
 
     .tx-item:hover {
-      background: rgba(196, 241, 53, 0.12);
+      background: rgba(212, 175, 55, 0.12);
       transform: scale(1.02);
     }
 
@@ -1337,7 +1342,7 @@
     .tx-cat {
       font-weight: 700;
       color: var(--text);
-      font-family: 'Quicksand', 'Nunito', var(--font);
+      font-family: var(--font);
       letter-spacing: .02em;
     }
 
@@ -1348,11 +1353,11 @@
     }
 
     .tx-amt {
-      font-family: 'Quicksand', 'Nunito', var(--font);
+      font-family: var(--font);
       font-size: 14px;
       font-weight: 800;
-      color: var(--lime);
-      text-shadow: 0 0 10px rgba(196, 241, 53, 0.3);
+      color: var(--accent);
+      text-shadow: 0 0 10px rgba(212, 175, 55, 0.3);
     }
 
     @keyframes tx-in {
@@ -1389,7 +1394,7 @@
 
     .toast.error {
       border-color: rgba(242, 92, 92, .4);
-      color: var(--red);
+      color: var(--negative);
     }
 
     /* ─── MOBILE ─── */
@@ -1445,7 +1450,7 @@
     .ripple-fx {
       position: absolute;
       border-radius: 50%;
-      background: rgba(196, 241, 53, .3);
+      background: rgba(212, 175, 55, .3);
       pointer-events: none;
       animation: ripple-fx .6s ease-out forwards;
     }
@@ -1634,7 +1639,7 @@
     </div>
     <div class="dash-section">
       <div class="dash-label">spent</div>
-      <div class="dash-value" id="dash-expense" style="color:var(--red)">₹0</div>
+      <div class="dash-value" id="dash-expense" style="color:var(--negative)">₹0</div>
       <div class="dash-sub">this month</div>
     </div>
     <div class="dash-section">

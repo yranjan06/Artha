@@ -20,9 +20,9 @@
       --bg: #BEE554;
       --bg3: #A6CE3A;
       --bg4: #97BF2A;
-      --lime: #2c5a08;
-      --lime2: #9bc428;
-      --lime-dim: rgba(44, 90, 8, .1);
+      --accent: #d4af37;
+      --accent2: #e8cc6a;
+      --border: rgba(212,175,55,.12);
       --text: #1a3604;
       --text2: #2c5a08;
       --text3: #3f7d0e;
@@ -65,7 +65,7 @@
     }
 
     .state-label span {
-      color: var(--lime);
+      color: var(--accent);
       font-weight: 400;
     }
 
@@ -131,7 +131,7 @@
       inset: 0;
       margin: auto;
       border-radius: 50%;
-      border: 1px solid var(--lime);
+      border: 1px solid var(--accent);
       opacity: 0;
       pointer-events: none;
     }
@@ -199,7 +199,7 @@
     .wave-bar {
       height: 3px;
       border-radius: 2px;
-      background: var(--lime);
+      background: var(--accent);
     }
 
     .wave-side.left .wave-bar {
@@ -354,12 +354,12 @@
       position: absolute;
       width: 7px;
       height: 7px;
-      background: var(--lime);
+      background: var(--accent);
       border-radius: 50%;
       bottom: 9px;
       right: 9px;
       opacity: .95;
-      box-shadow: 0 0 4px var(--lime);
+      box-shadow: 0 0 4px var(--accent);
     }
 
     .lid {
@@ -471,8 +471,8 @@
     }
 
     .key-item:hover {
-      border-color: var(--lime2);
-      background: var(--lime-dim);
+      border-color: var(--accent2);
+      background: var(--border);
       transform: translateY(-1px);
     }
 
@@ -481,14 +481,14 @@
     }
 
     .key-item.active {
-      border-color: var(--lime);
-      background: var(--lime-dim);
+      border-color: var(--accent);
+      background: var(--border);
     }
 
     .key-badge {
       font-size: 11px;
       font-weight: 400;
-      color: var(--lime);
+      color: var(--accent);
       background: rgba(44, 90, 8, .1);
       border-radius: 4px;
       padding: 2px 6px;
