@@ -1,0 +1,11 @@
+version: "3.8"
+
+services:
+  artha:
+    build: .
+    ports:
+      - "7860:7860"
+    env_file: .env
+    volumes:
+      - ./memory:/app/memory
+    restart: unless-stopped
